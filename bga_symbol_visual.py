@@ -58,7 +58,7 @@ def read_in_xlsx_file(file):
     return bga_dict, col_list, row_list, color_map_dict
 
 if __name__ == '__main__':
-    BGA, COLUMNS, ROWS, COLORS = read_in_xlsx_file("bga.xlsx")
+    BGA, COLUMNS, ROWS, COLORS = read_in_xlsx_file("artix7_example.xlsx")
 
     MASTER = Tk()
     PIN_SCROLL = Scrollbar(MASTER)
