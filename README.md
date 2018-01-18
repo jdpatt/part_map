@@ -8,6 +8,7 @@ directly assigned to them.  Use the standard colors or excel's color picker to
 pick the cell fill and always use a solid fill. (No gradients)
 
 ## Example of a Artix7
+[Artix 7 Pinout Files](https://www.xilinx.com/support/package-pinout-files/artix-7-pkgs.html)
 
 ![BGA Example][example]
 
