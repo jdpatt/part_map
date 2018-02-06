@@ -42,7 +42,7 @@ def read_in_xlsx_file(file):
     bga_dict = dict()
     pin_list = list()
     color_map_dict = dict()
-    for excel_row in range(2, sheet.max_row):
+    for excel_row in range(2, sheet.max_row + 1):
         pin = sheet.cell(row=excel_row, column=pin_column)
         function = sheet.cell(row=excel_row, column=function_column)
         if pin.value is not None or function.value is not None:
