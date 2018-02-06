@@ -101,12 +101,18 @@ if __name__ == '__main__':
                         fill = COLORS[pinname]
                     else:
                         fill = ''
-                    # create_oval for circles
-                    WINDOW.create_rectangle((ELEMENT_SIZE * c_index) + OFFSET,
-                                            (ELEMENT_SIZE * r_index) + OFFSET,
-                                            (ELEMENT_SIZE * c_index) + ELEMENT_SIZE + OFFSET,
-                                            (ELEMENT_SIZE * r_index) + ELEMENT_SIZE + BORDER,
-                                            fill=fill)
+                    if ARGS.circles:
+                        WINDOW.create_oval((ELEMENT_SIZE * c_index) + OFFSET,
+                                           (ELEMENT_SIZE * r_index) + OFFSET,
+                                           (ELEMENT_SIZE * c_index) + ELEMENT_SIZE + OFFSET,
+                                           (ELEMENT_SIZE * r_index) + ELEMENT_SIZE + BORDER,
+                                           fill=fill)
+                    else:
+                        WINDOW.create_rectangle((ELEMENT_SIZE * c_index) + OFFSET,
+                                                (ELEMENT_SIZE * r_index) + OFFSET,
+                                                (ELEMENT_SIZE * c_index) + ELEMENT_SIZE + OFFSET,
+                                                (ELEMENT_SIZE * r_index) + ELEMENT_SIZE + BORDER,
+                                                fill=fill)
                     WINDOW.create_text((ELEMENT_SIZE * c_index) + OFFSET +
                                        GRID_SPACING + (ELEMENT_SIZE/2),
                                        (ELEMENT_SIZE * r_index) + OFFSET + (ELEMENT_SIZE/2),
