@@ -69,8 +69,13 @@ if __name__ == '__main__':
     PARSER.add_argument('--circles', '-c',
                         action='store_true',
                         help='Print circles instead of rectangles')
+    PARSER.add_argument('--rotate', '-r',
+                        action='store_true',
+                        help='Swap the row and columns')
     ARGS = PARSER.parse_args()
     BGA, ROWS, COLUMNS, COLORS = read_in_xlsx_file(ARGS.excel_file)
+    if ARGS.rotate:
+        ROWS, COLUMNS = COLUMNS, ROWS
 
     MASTER = Tk()
     PIN_SCROLL = Scrollbar(MASTER)
@@ -91,7 +96,10 @@ if __name__ == '__main__':
         # Create the BGA Canvas
         for r_index, row in enumerate(ROWS):
             for c_index, column in enumerate(COLUMNS):
-                pinname = column + str(row)
+                if ARGS.rotate:
+                    pinname = str(row) + column
+                else:
+                    pinname = column + str(row)
                 if pinname in BGA:
                     if BGA[pinname] is not None and len(BGA[pinname]) > 5:
                         pin_function = BGA[pinname][:5]
