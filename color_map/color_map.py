@@ -5,6 +5,7 @@ from sys import exit, argv
 from logging import basicConfig, getLogger, INFO
 from json import load, dump
 from os.path import abspath, join, dirname, basename
+from os import getcwd
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string
@@ -87,7 +88,9 @@ class PartViewer(QGraphicsView):
         return img
 
     def save(self):
-        self.image.save(join(PATH, f'{self.title}.png'))
+        save_file = join(PATH, self.title + '.png')
+        print(f'Saved to {save_file}')
+        self.image.save(save_file)
 
     def scaleBoxSize(self, COLUMNS, ROWS):
         self.BOX_SIZE = 50.0
@@ -191,7 +194,9 @@ class PartObject(object):
 
     def dumpJson(self):
         ''' Dump the PartObject dictionary to a .json file '''
-        with open(join(PATH, f'{self.filename}.json'), 'w') as outfile:
+        save_file = join(PATH, self.filename + '.json')
+        print(f'Saved to {save_file}')
+        with open(save_file, 'w') as outfile:
             dump(self.__pins, outfile, indent=4, separators=(',', ': '))
 
     def sortAndSpiltPinList(self):
@@ -294,7 +299,7 @@ def main():
 
 
 app = None
-PATH = dirname(abspath(__file__))
+PATH = getcwd()
 # Setup Global Logger module
 # LOG = setupLogger('color_map.txt')
 
