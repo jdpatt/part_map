@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/Library/Frameworks/Python.framework/Versions/3.6/bin/python3
 ''' Visual pinout of a bga or connector '''
 from re import split
 from sys import exit, argv
@@ -25,27 +25,41 @@ class PartViewer(QGraphicsView):
         self.width = width
         self.part = part
         self.orientation = rotate
+        self.zoom = 0
         super(PartViewer, self).__init__()
         self.image = self.createImage()
         self.initUI()
+        self.total_steps = 0
+        self.factor = 1.0
 
     def initUI(self):
         self.resize(self.width, self.height)
         self.setWindowTitle(self.title)
         self.item = QPixmap.fromImage(self.image)
-        item = self.item.scaled(self.width, self.height)
+        item = self.item.scaled(self.width, self.height, Qt.KeepAspectRatio)  #Loses quality
         self.scene = QGraphicsScene()
         self.scene.addPixmap(item)
-        self.fitInView(QRectF(0, 0, self.width, self.height))
         self.setScene(self.scene)
+        self.setTransformationAnchor(self.AnchorUnderMouse)
+        self.setResizeAnchor(self.AnchorUnderMouse)
 
-    def resizeEvent(self, event):
-        item = self.item.scaled(self.width, self.height, Qt.KeepAspectRatio)
-        self.scene = QGraphicsScene()
-        self.scene.addPixmap(item)
+    def resetZoom(self):
         self.fitInView(QRectF(0, 0, self.width, self.height))
-        self.setScene(self.scene)
-        self.show()
+
+    def wheelEvent(self, event):
+        steps = (event.angleDelta().y() / 120)
+        self.total_steps += steps
+        if (self.total_steps * steps) < 0:
+            self.total_steps = steps  # Zoom out by steps
+        factor = 1.0 + steps/10.0
+        self.factor *= factor
+        if self.factor < .6:
+            self.factor = .6
+        elif self.factor > 5:
+            self.factor = 5
+            return
+        else:
+            self.scale(factor, factor)
 
     def createImage(self):
         COLUMNS = self.part.getColumns()
