@@ -1,0 +1,234 @@
+{
+    "A1": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "A2": {
+        "name": "DIFF_P",
+        "color": "#2DC3C4"
+    },
+    "A3": {
+        "name": "DIFF_N",
+        "color": "#2DC3C4"
+    },
+    "A4": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "A5": {
+        "name": "CLK_RESET_L",
+        "color": "#ffffff"
+    },
+    "A6": {
+        "name": "SIGNAL1",
+        "color": "#4CBB63"
+    },
+    "A7": {
+        "name": "SIGNAL2",
+        "color": "#B67857"
+    },
+    "A8": {
+        "name": "SIGNAL3",
+        "color": "#859E1B"
+    },
+    "A9": {
+        "name": "SIGNAL4",
+        "color": "#5449B2"
+    },
+    "A10": {
+        "name": "SIGNAL5",
+        "color": "#36C25E"
+    },
+    "A11": {
+        "name": "SIGNAL6",
+        "color": "#B24A70"
+    },
+    "A12": {
+        "name": "SIGNAL7",
+        "color": "#BE6938"
+    },
+    "A13": {
+        "name": "SIGNAL8",
+        "color": "#ffffff"
+    },
+    "A14": {
+        "name": "SIGNAL9",
+        "color": "#ffffff"
+    },
+    "A15": {
+        "name": "SIGNAL10",
+        "color": "#ffffff"
+    },
+    "A16": {
+        "name": "SIGNAL11",
+        "color": "#ffffff"
+    },
+    "B1": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B2": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B3": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B4": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B5": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B6": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B7": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B8": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B9": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B10": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B11": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B12": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B13": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B14": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B15": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B16": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "C1": {
+        "name": "USB_VCC",
+        "color": "#D94754"
+    },
+    "C2": {
+        "name": "USB_VCC",
+        "color": "#D94754"
+    },
+    "C3": {
+        "name": "USB_VCC",
+        "color": "#D94754"
+    },
+    "C4": {
+        "name": "USB_VCC",
+        "color": "#D94754"
+    },
+    "C5": {
+        "name": "USB_VCC",
+        "color": "#D94754"
+    },
+    "C6": {
+        "name": "USB_GND",
+        "color": "#ffffff"
+    },
+    "C7": {
+        "name": "USB_GND",
+        "color": "#ffffff"
+    },
+    "C8": {
+        "name": "USB_GND",
+        "color": "#ffffff"
+    },
+    "C9": {
+        "name": "USB_GND",
+        "color": "#ffffff"
+    },
+    "C10": {
+        "name": "USB_GND",
+        "color": "#ffffff"
+    },
+    "D1": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D2": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D3": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D4": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D5": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D6": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D7": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D8": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D9": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D10": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D11": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D12": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D13": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D14": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D15": {
+        "name": "NC",
+        "color": "#ffffff"
+    },
+    "D16": {
+        "name": "NC",
+        "color": "#ffffff"
+    }
+}

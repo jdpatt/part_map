@@ -70,7 +70,9 @@ class PartViewer(QGraphicsView):
         num_of_cols = len(COLUMNS)
         num_of_rows = len(ROWS)
         w, h = self.scaleBoxSize(COLUMNS, ROWS)
-        img = QImage(w, h, QImage.Format_RGB32)  # 2k image
+        img = QImage(w,
+                     h + self.HALF_BOX,
+                     QImage.Format_RGB32)  # 2k image
         img.fill(QColor('#ffffff'))  # Background Color
         self.paint = QPainter(img)
         self.paint.setRenderHints(QPainter.HighQualityAntialiasing |
@@ -80,7 +82,7 @@ class PartViewer(QGraphicsView):
             self.paint.translate(QPoint(w, 0))
             self.paint.rotate(90)
         for hdr_offset, column in enumerate(COLUMNS):
-            self.paint.drawText(QRectF(hdr_offset * self.BOX_SIZE,
+            self.paint.drawText(QRectF(hdr_offset * self.BOX_SIZE + self.HALF_BOX,
                                        0,
                                        self.BOX_SIZE,
                                        self.BOX_SIZE),
@@ -94,14 +96,14 @@ class PartViewer(QGraphicsView):
                     fill = pin['color']
                     brush = QBrush(QColor(fill))
                     self.paint.setBrush(brush)
-                    rect = QRectF(self.BOX_SIZE * x_offset,
+                    rect = QRectF(self.BOX_SIZE * x_offset + self.HALF_BOX,
                                   self.BOX_SIZE * y_offset + self.BOX_SIZE,
                                   self.BOX_SIZE,
                                   self.BOX_SIZE)
                     self.paint.drawRect(rect)
                     pin_name = pin['name'][:6]
                     self.paint.drawText(rect, Qt.AlignCenter, pin_name)
-            self.paint.drawText(QRectF(self.BOX_SIZE * num_of_cols,
+            self.paint.drawText(QRectF(self.BOX_SIZE * num_of_cols + self.HALF_BOX,
                                        self.BOX_SIZE * y_offset + self.BOX_SIZE,
                                        self.BOX_SIZE,
                                        self.BOX_SIZE),
@@ -123,8 +125,9 @@ class PartViewer(QGraphicsView):
         else:
             self.window_scale = part_width/1536.0
         self.BOX_SIZE = self.BOX_SIZE * self.window_scale
-        part_width = (len(COLUMNS) + 1) * self.BOX_SIZE
-        part_height = (len(ROWS) + 1) * self.BOX_SIZE
+        part_width = (len(COLUMNS) + 1) * self.BOX_SIZE + self.BOX_SIZE
+        part_height = (len(ROWS) + 1) * self.BOX_SIZE + self.BOX_SIZE
+        self.HALF_BOX = self.BOX_SIZE / 2
         return part_width, part_height
 
 
@@ -134,7 +137,7 @@ class PartObject(object):
         super(PartObject, self).__init__()
         self.__pins = pins
         self.__columns, self.__rows = self.sortAndSpiltPinList()
-        self.filename = filename.split('.')[0]
+        self.filename = basename(filename).split('.')[0]
 
     @classmethod
     def fromExcel(cls, filename):
@@ -268,16 +271,18 @@ def parseCommandLine():
                         help='The  file to read in')
     parser.add_argument('--excel', '-e',
                         action='store_true',
-                        help='The file type is excel')
+                        help='Load from an excel file')
     parser.add_argument('--json', '-j',
                         action='store_true',
-                        help='The file type is json')
+                        help='Load from a json file')
     parser.add_argument('--tel', '-t',
                         action='store_true',
-                        help='The file type is Telesis')
+                        help='Load from a Telesis file')
+    parser.add_argument('--refdes',
+                        help='The refdes to pull from the Telesis')
     parser.add_argument('--rotate', '-r',
                         action='store_true',
-                        help='Swap the row and columns')
+                        help='Rotate the image by 90 degrees')
     parser.add_argument('--save', '-s',
                         action='store_true',
                         help='Save the image as a .png')
@@ -297,7 +302,7 @@ def main():
     elif ARGS.json:
         PART = PartObject.fromJson(ARGS.filename)
     elif ARGS.tel:
-        PART = PartObject.fromTelesis(ARGS.filename)
+        PART = PartObject.fromTelesis(ARGS.filename, ARGS.refdes)
     else:
         exit()
     global app

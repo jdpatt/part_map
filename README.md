@@ -1,22 +1,42 @@
-### BGA Footprint Visual
+### Part Pinout Visualizer
 
-Takes in a standard excel file and looks for the columns named "Name" and "Number". 
-It will then generate a diagram using tkinter.  The color in the diagram is determined by the
-cell's fill color. Do not use the built-in themes as they do not have a color 
-directly assigned to them.  Use the standard colors or excel's color picker to 
-pick the cell fill and always use a solid fill. (No gradients)  Since the "Name"
-can be a long string when entered into a schematic; the script will cut down the
-text to the first 5 characters in a string. (DDR4_CKE0_L  -> DDR4_)
+Generate a visualization of a part to help with pinout or general planning.
+Helpful in the early stages of design before layout begins.  Can use it for
+anything that is on a grid.
 
 ## Usage
 ```
-python3 bga_color_map.py excel_file [-c]
+usage: color_map.py [-h] [--excel] [--json] [--tel] [--rotate] [--save]
+                    [--dump] [--nogui]
+                    [filename]
+
+positional arguments:
+  filename      The file to read in
+
+optional arguments:
+  -h, --help    show this help message and exit
+  --excel, -e   Load from an Excel file
+  --json, -j    Load from a Json file
+  --tel, -t     Load from a Telesis file
+  --rotate, -r  Rotate the image by 90 degrees
+  --save, -s    Save the image as a .png
+  --dump, -d    Dump PartObject as a Json File
+  --nogui, -n   Do not open GUI window
+
+USAGE:
+    color_map.py -e part_spreadsheet.xlsx
+    color_map.py -j part.json
+    color_map.py -rsdt part.tel
 ```
 
 ## Example of a Artix7
 [Artix 7 Pinout Files](https://www.xilinx.com/support/package-pinout-files/artix-7-pkgs.html)
 
-![BGA Example][example]
+``` color_map.py -e artix7_example.xlsx -s ```
+![Artix Example][example_artix]
+``` color_map.py -j connector_example.json ```
+![Connector Example][example_connector]
 
 
-[example]: ./example.jpg?raw=true "BGA Example"
+[example_artix]: ./example/artix7_example.png?raw=true "BGA Example"
+[example_connector]: ./example/connector_example.png?raw=true "Connector Example"
