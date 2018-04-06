@@ -38,5 +38,5 @@ USAGE:
 ![Connector Example][example_connector]
 
 
-[example_artix]: ./example/artix7_example.png?raw=true "BGA Example"
-[example_connector]: ./example/connector_example.png?raw=true "Connector Example"
+[example_artix]:./examples/artix7_example.png?raw=true "BGA Example"
+[example_connector]: ./examples/connector_example.png?raw=true "Connector Example"
