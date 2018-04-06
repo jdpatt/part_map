@@ -260,9 +260,9 @@ def setupLogger(logger_filename):
 def parseCommandLine():
     ''' Handle any command line input '''
     usage = '''USAGE:
-    color_map.py -e part_spreadsheet.xlsx
-    color_map.py -j part.json
-    color_map.py -rsdt part.tel'''
+    part_map.py -e part_spreadsheet.xlsx
+    part_map.py -j part.json
+    part_map.py -rsdt part.tel'''
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
                             epilog=usage)
     parser.add_argument('filename',
@@ -329,7 +329,7 @@ def main():
 app = None
 PATH = getcwd()
 # Setup Global Logger module
-# LOG = setupLogger('color_map.txt')
+# LOG = setupLogger('part_map.txt')
 
 if __name__ == '__main__':
     main()

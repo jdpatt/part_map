@@ -1,12 +1,12 @@
-### Part Pinout Visualizer
+# Part Pinout Visualizer
 
 Generate a visualization of a part to help with pinout or general planning.
 Helpful in the early stages of design before layout begins.  Can use it for
 anything that is on a grid.
 
-## Usage
+### Usage
 ```
-usage: color_map.py [-h] [--excel] [--json] [--tel] [--rotate] [--save]
+usage: part_map.py [-h] [--excel] [--json] [--tel] [--rotate] [--save]
                     [--dump] [--nogui]
                     [filename]
 
@@ -24,17 +24,17 @@ optional arguments:
   --nogui, -n   Do not open GUI window
 
 USAGE:
-    color_map.py -e part_spreadsheet.xlsx
-    color_map.py -j part.json
-    color_map.py -rsdt part.tel
+    part_map.py -e part_spreadsheet.xlsx
+    part_map.py -j part.json
+    part_map.py -rsdt part.tel
 ```
 
-## Example of a Artix7
+### Example of a Artix7
 [Artix 7 Pinout Files](https://www.xilinx.com/support/package-pinout-files/artix-7-pkgs.html)
 
-``` color_map.py -e artix7_example.xlsx -s ```
+``` part_map.py -e artix7_example.xlsx -s ```
 ![Artix Example][example_artix]
-``` color_map.py -j connector_example.json ```
+``` part_map.py -j connector_example.json ```
 ![Connector Example][example_connector]
 
 
