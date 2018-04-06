@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QGraphicsView,
                              QGraphicsPixmapItem, QGraphicsScene)
 from PyQt5.QtGui import (QPainter, QBrush, QColor, QFontMetrics, QFont, QImage,
                          QPixmap)
-from PyQt5.QtCore import QRectF, Qt
+from PyQt5.QtCore import QRectF, Qt, QPoint
 
 
 class PartViewer(QGraphicsView):
@@ -33,15 +33,18 @@ class PartViewer(QGraphicsView):
         self.factor = 1.0
 
     def initUI(self):
-        self.resize(self.width, self.height)
         self.setWindowTitle(self.title)
         self.item = QPixmap.fromImage(self.image)
-        item = self.item.scaled(self.width, self.height, Qt.KeepAspectRatio)  #Loses quality
+        item = self.item.scaled(self.width,
+                                self.height,
+                                Qt.KeepAspectRatio,
+                                Qt.SmoothTransformation)
         self.scene = QGraphicsScene()
         self.scene.addPixmap(item)
         self.setScene(self.scene)
         self.setTransformationAnchor(self.AnchorUnderMouse)
         self.setResizeAnchor(self.AnchorUnderMouse)
+        self.setDragMode(self.ScrollHandDrag)
 
     def resetZoom(self):
         self.fitInView(QRectF(0, 0, self.width, self.height))
@@ -70,6 +73,12 @@ class PartViewer(QGraphicsView):
         img = QImage(w, h, QImage.Format_RGB32)  # 2k image
         img.fill(QColor('#ffffff'))  # Background Color
         self.paint = QPainter(img)
+        self.paint.setRenderHints(QPainter.HighQualityAntialiasing |
+                                  QPainter.SmoothPixmapTransform |
+                                  QPainter.TextAntialiasing, True)
+        if self.orientation:  # TODO: Rotate all pieces in painter not just img
+            self.paint.translate(QPoint(w, 0))
+            self.paint.rotate(90)
         for hdr_offset, column in enumerate(COLUMNS):
             self.paint.drawText(QRectF(hdr_offset * self.BOX_SIZE,
                                        0,
