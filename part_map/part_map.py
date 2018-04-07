@@ -1,134 +1,129 @@
 #!/Library/Frameworks/Python.framework/Versions/3.6/bin/python3
 ''' Visual pinout of a bga or connector '''
-from re import split
-from sys import exit, argv
+from re import split, match, findall
+from sys import argv
 from logging import basicConfig, getLogger, INFO
 from json import load, dump
-from os.path import abspath, join, dirname, basename
+from os.path import join, basename
 from os import getcwd
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string
 from natsort import natsorted
-from PyQt5.QtWidgets import (QApplication, QWidget, QGraphicsView,
-                             QGraphicsPixmapItem, QGraphicsScene)
-from PyQt5.QtGui import (QPainter, QBrush, QColor, QFontMetrics, QFont, QImage,
-                         QPixmap)
+from PyQt5.QtWidgets import QApplication, QGraphicsView, QGraphicsScene
+from PyQt5.QtGui import QPainter, QBrush, QColor, QImage, QPixmap
 from PyQt5.QtCore import QRectF, Qt, QPoint
 
 
 class PartViewer(QGraphicsView):
     ''' Create a render of the part and load it into a QWidget '''
-    def __init__(self, part, width, height, title='PartViewer', rotate=False):
-        self.title = title
-        self.height = height
-        self.width = width
+    def __init__(self, part, partview_settings):
+        self.settings = partview_settings
         self.part = part
-        self.orientation = rotate
-        self.zoom = 0
-        super(PartViewer, self).__init__()
-        self.image = self.createImage()
-        self.initUI()
+        self.image = None
+        self.box_size = 50
         self.total_steps = 0
-        self.factor = 1.0
+        super(PartViewer, self).__init__()
+        self.initUI()
 
     def initUI(self):
-        self.setWindowTitle(self.title)
-        self.item = QPixmap.fromImage(self.image)
-        item = self.item.scaled(self.width,
-                                self.height,
-                                Qt.KeepAspectRatio,
-                                Qt.SmoothTransformation)
+        ''' Init all the UI elements '''
+        self.setWindowTitle(self.settings['title'])
+        pixmap = QPixmap.fromImage(self.image)
+        item = pixmap.scaled(self.width,
+                             self.height,
+                             Qt.KeepAspectRatio,
+                             Qt.SmoothTransformation)
         self.scene = QGraphicsScene()
         self.scene.addPixmap(item)
         self.setScene(self.scene)
         self.setTransformationAnchor(self.AnchorUnderMouse)
         self.setResizeAnchor(self.AnchorUnderMouse)
         self.setDragMode(self.ScrollHandDrag)
+        self.show()
 
     def resetZoom(self):
+        ''' Go back to a scale of 1.0 '''
         self.fitInView(QRectF(0, 0, self.width, self.height))
 
     def wheelEvent(self, event):
+        ''' If the wheel is scrolled; figure out how much to zoom '''
         steps = (event.angleDelta().y() / 120)
         self.total_steps += steps
         if (self.total_steps * steps) < 0:
             self.total_steps = steps  # Zoom out by steps
         factor = 1.0 + steps/10.0
-        self.factor *= factor
-        if self.factor < .6:
-            self.factor = .6
-        elif self.factor > 5:
-            self.factor = 5
+        self.settings['factor'] *= factor
+        if self.settings['factor'] < .6:
+            self.settings['factor'] = .6
+        elif self.settings['factor'] > 5:
+            self.settings['factor'] = 5
             return
         else:
             self.scale(factor, factor)
 
-    def createImage(self):
-        COLUMNS = self.part.getColumns()
-        ROWS = self.part.getRows()
-        num_of_cols = len(COLUMNS)
-        num_of_rows = len(ROWS)
-        w, h = self.scaleBoxSize(COLUMNS, ROWS)
-        img = QImage(w,
-                     h + self.HALF_BOX,
+    def generateRender(self):
+        ''' Generate the part '''
+        part_cols = self.part.getColumns()
+        part_rows = self.part.getRows()
+        self.scaleBoxSize(part_cols, part_rows)
+        img = QImage(self.settings['width'],
+                     self.settings['height'] + (self.box_size / 2),
                      QImage.Format_RGB32)  # 2k image
         img.fill(QColor('#ffffff'))  # Background Color
-        self.paint = QPainter(img)
-        self.paint.setRenderHints(QPainter.HighQualityAntialiasing |
-                                  QPainter.SmoothPixmapTransform |
-                                  QPainter.TextAntialiasing, True)
-        if self.orientation:  # TODO: Rotate all pieces in painter not just img
-            self.paint.translate(QPoint(w, 0))
-            self.paint.rotate(90)
-        for hdr_offset, column in enumerate(COLUMNS):
-            self.paint.drawText(QRectF(hdr_offset * self.BOX_SIZE + self.HALF_BOX,
-                                       0,
-                                       self.BOX_SIZE,
-                                       self.BOX_SIZE),
-                                Qt.AlignCenter,
-                                column)
-        for y_offset, row in enumerate(ROWS):
-            for x_offset, column in enumerate(COLUMNS):
-                pn = str(row) + column
-                pin = self.part.getPin(pn)
+        paint = QPainter(img)
+        paint.setRenderHints(QPainter.HighQualityAntialiasing |
+                             QPainter.SmoothPixmapTransform |
+                             QPainter.TextAntialiasing, True)
+        if self.settings['rotate']:
+            paint.translate(QPoint(self.settings['width'], 0))
+            paint.rotate(90)
+        for hdr_offset, column in enumerate(part_cols):
+            paint.drawText(QRectF(hdr_offset * self.box_size + (self.box_size / 2),
+                                  0,
+                                  self.box_size,
+                                  self.box_size),
+                           Qt.AlignCenter,
+                           column)
+        for y_offset, row in enumerate(part_rows):
+            for x_offset, column in enumerate(part_cols):
+                pin = self.part.getPin(str(row) + column)
                 if pin and pin['name'] is not None:
                     fill = pin['color']
                     brush = QBrush(QColor(fill))
-                    self.paint.setBrush(brush)
-                    rect = QRectF(self.BOX_SIZE * x_offset + self.HALF_BOX,
-                                  self.BOX_SIZE * y_offset + self.BOX_SIZE,
-                                  self.BOX_SIZE,
-                                  self.BOX_SIZE)
-                    self.paint.drawRect(rect)
-                    pin_name = pin['name'][:6]
-                    self.paint.drawText(rect, Qt.AlignCenter, pin_name)
-            self.paint.drawText(QRectF(self.BOX_SIZE * num_of_cols + self.HALF_BOX,
-                                       self.BOX_SIZE * y_offset + self.BOX_SIZE,
-                                       self.BOX_SIZE,
-                                       self.BOX_SIZE),
-                                Qt.AlignCenter,
-                                row)
-        self.paint.end()
-        return img
+                    paint.setBrush(brush)
+                    rect = QRectF(self.box_size * x_offset + (self.box_size / 2),
+                                  self.box_size * y_offset + self.box_size,
+                                  self.box_size,
+                                  self.box_size)
+                    paint.drawRect(rect)
+                    paint.drawText(rect, Qt.AlignCenter, pin['name'][:6])
+            paint.drawText(QRectF(self.box_size * len(part_cols) + (self.box_size / 2),
+                                  self.box_size * y_offset + self.box_size,
+                                  self.box_size,
+                                  self.box_size),
+                           Qt.AlignCenter,
+                           row)
+        paint.end()
+        self.image = img
 
     def save(self):
-        save_file = join(PATH, self.title + '.png')
+        ''' Save the Pixmap as a .png '''
+        save_file = join(PATH, self.settings['title'] + '.png')
         print(f'Saved to {save_file}')
         self.image.save(save_file)
 
-    def scaleBoxSize(self, COLUMNS, ROWS):
-        self.BOX_SIZE = 50.0
-        part_width = (len(COLUMNS) + 1) * self.BOX_SIZE
-        if 1536.0 > part_width:
-            self.window_scale = 1536.0/part_width
+    def scaleBoxSize(self, columns, rows):
+        ''' If the part width is greater than 1536 (2K width) scale up or down
+        '''
+        part_width = (len(columns) + 1) * self.box_size
+        if part_width < 1536.0:
+            window_scale = 1536.0/part_width
         else:
-            self.window_scale = part_width/1536.0
-        self.BOX_SIZE = self.BOX_SIZE * self.window_scale
-        part_width = (len(COLUMNS) + 1) * self.BOX_SIZE + self.BOX_SIZE
-        part_height = (len(ROWS) + 1) * self.BOX_SIZE + self.BOX_SIZE
-        self.HALF_BOX = self.BOX_SIZE / 2
-        return part_width, part_height
+            window_scale = part_width/1536.0
+        self.box_size = self.box_size * window_scale
+        self.settings['width'] = (len(columns) + 1) * self.box_size + self.box_size
+        self.settings['height'] = (len(rows) + 1) * self.box_size + self.box_size
 
 
 class PartObject(object):
@@ -148,7 +143,7 @@ class PartObject(object):
         sheet = workbook.active  # Grab the first sheet
         header = sheet.iter_cols(max_row=1)
         try:
-            column = PartObject.getColIndexOfHeader([number, name], header)
+            column = getColIndexOfHeader([number, name], header)
             bga = dict()
             for excel_row in range(2, sheet.max_row + 1):
                 pin = sheet.cell(row=excel_row, column=column[number]).value
@@ -168,12 +163,12 @@ class PartObject(object):
     @classmethod
     def fromTelesis(cls, filename, refdes):
         ''' Import a Telesis formatted file and create a PartObject '''
-        with open(tel_file, 'r') as fl:
-            tel_text = fl.readlines()
+        with open(filename, 'r') as tel_file:
+            tel_text = tel_file.readlines()
         tel_netlist = dict()
         for line in tel_text:
             reg = match(r'(.*);', line)
-            reg2 = findall(ref + r'\.([a-zA-Z0-9]+)', line)
+            reg2 = findall(refdes + r'\.([a-zA-Z0-9]+)', line)
             if reg and reg2:
                 net = reg.group(1)
                 for reg_match in reg2:
@@ -187,35 +182,34 @@ class PartObject(object):
         ''' Import a json file with a format {pin: {name:, color:}} '''
         return cls(load(open(filename)), filename)
 
-    def getColIndexOfHeader(name, columns):
-        indexes = dict()
-        for col in columns:
-            if col[0].value in name:  # Only look at the first row
-                indexes.update(
-                    {col[0].value: column_index_from_string(col[0].column)})
-        return indexes
-
     def addPin(self, pin, net, color):
+        ''' Add a new pin to the part '''
         self.__pins.update({pin: {'name': net, 'color': color}})
 
     def getColumns(self):
+        ''' Get the columns in a part. [A - AZ] '''
         return self.__columns
 
     def getRows(self):
+        ''' Get the rows in a part.  [1-n] '''
         return self.__rows
 
     def getPin(self, pin):
+        ''' Get the name and color of a pin '''
         if pin in self.__pins:
             return self.__pins[pin]
         return None
 
     def getPins(self):
+        ''' Return the pin names '''
         return self.__pins.keys()
 
     def getNumberofPins(self):
+        ''' Return how many pins are in the part '''
         return len(self.__pins)
 
     def getNames(self):
+        ''' Return the net names '''
         return self.__pins.values()['name']
 
     def dumpJson(self):
@@ -244,6 +238,16 @@ class PartObject(object):
         temp2 = natsorted(temp2)
         temp2.extend(natsorted(temp))
         return natsorted(set(c_list)), temp2
+
+
+def getColIndexOfHeader(name, columns):
+    ''' return a list of the column numbers if it matches '''
+    indexes = dict()
+    for col in columns:
+        if col[0].value in name:  # Only look at the first row
+            indexes.update(
+                {col[0].value: column_index_from_string(col[0].column)})
+    return indexes
 
 
 def setupLogger(logger_filename):
@@ -296,37 +300,39 @@ def parseCommandLine():
 
 
 def main():
-    ARGS = parseCommandLine()
-    if ARGS.excel:
-        PART = PartObject.fromExcel(ARGS.filename)
-    elif ARGS.json:
-        PART = PartObject.fromJson(ARGS.filename)
-    elif ARGS.tel:
-        PART = PartObject.fromTelesis(ARGS.filename, ARGS.refdes)
+    ''' Handle all the input and create the viewer '''
+    args = parseCommandLine()
+    if args.excel:
+        part = PartObject.fromExcel(args.filename)
+    elif args.json:
+        part = PartObject.fromJson(args.filename)
+    elif args.tel:
+        part = PartObject.fromTelesis(args.filename, args.refdes)
     else:
         exit()
-    global app
-    app = QApplication(argv)
-    screen_resolution = app.desktop().screenGeometry()
-    width, height = screen_resolution.width(), screen_resolution.height()
-    VIEW = PartViewer(PART,
-                      width,
-                      height,
-                      title=basename(ARGS.filename).split('.')[0],
-                      rotate=ARGS.rotate)
-    if not ARGS.nogui:
-        VIEW.show()
-    if ARGS.dump:
-        PART.dumpJson()
-    if ARGS.save:
-        VIEW.save()
-    if ARGS.nogui:
-        app.closeAllWindows()
+    global APP
+    APP = QApplication(argv)
+    screen_resolution = APP.desktop().screenGeometry()
+    view_settings = {'width': screen_resolution.width(),
+                     'height': screen_resolution.height(),
+                     'title': basename(args.filename).split('.')[0],
+                     'rotate': args.rotate,
+                     'factor': 1.0}
+    view = PartViewer(part, view_settings)
+    view.generateRender()
+    if not args.nogui:
+        view.initUI()
+    if args.dump:
+        part.dumpJson()
+    if args.save:
+        view.save()
+    if args.nogui:
+        APP.closeAllWindows()
     else:
-        exit(app.exec())
+        exit(APP.exec())
 
 
-app = None
+APP = None
 PATH = getcwd()
 # Setup Global Logger module
 # LOG = setupLogger('part_map.txt')
