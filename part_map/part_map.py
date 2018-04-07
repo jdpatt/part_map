@@ -79,7 +79,7 @@ class PartViewer(QGraphicsView):
             paint.translate(QPoint(self.settings['width'], 0))
             paint.rotate(90)
         for hdr_offset, column in enumerate(part_cols):
-            paint.drawText(QRectF(hdr_offset * self.box_size + (self.box_size / 2),
+            paint.drawText(QRectF(hdr_offset * self.box_size + int(self.box_size / 2),
                                   0,
                                   self.box_size,
                                   self.box_size),
@@ -92,7 +92,7 @@ class PartViewer(QGraphicsView):
                     fill = pin['color']
                     brush = QBrush(QColor(fill))
                     paint.setBrush(brush)
-                    rect = QRectF(self.box_size * x_offset + (self.box_size / 2),
+                    rect = QRectF(self.box_size * x_offset + int(self.box_size / 2),
                                   self.box_size * y_offset + self.box_size,
                                   self.box_size,
                                   self.box_size)
@@ -101,7 +101,7 @@ class PartViewer(QGraphicsView):
                     else:
                         paint.drawRect(rect)
                     paint.drawText(rect, Qt.AlignCenter, pin['name'][:6])
-            paint.drawText(QRectF(self.box_size * len(part_cols) + (self.box_size / 2),
+            paint.drawText(QRectF(self.box_size * len(part_cols) + int(self.box_size / 2),
                                   self.box_size * y_offset + self.box_size,
                                   self.box_size,
                                   self.box_size),
@@ -123,7 +123,7 @@ class PartViewer(QGraphicsView):
             window_scale = 1536.0/part_width
         else:
             window_scale = part_width/1536.0
-        self.box_size = self.box_size * window_scale
+        self.box_size = int(self.box_size * window_scale)
         self.settings['width'] = (len(columns) + 1) * self.box_size + self.box_size
         self.settings['height'] = (len(rows) + 1) * self.box_size + self.box_size
 
