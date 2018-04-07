@@ -24,14 +24,14 @@ class PartViewer(QGraphicsView):
         self.box_size = 50
         self.total_steps = 0
         super(PartViewer, self).__init__()
-        self.initUI()
+        self.generateRender()
 
     def initUI(self):
         ''' Init all the UI elements '''
         self.setWindowTitle(self.settings['title'])
         pixmap = QPixmap.fromImage(self.image)
-        item = pixmap.scaled(self.width,
-                             self.height,
+        item = pixmap.scaled(self.settings['width'],
+                             self.settings['height'],
                              Qt.KeepAspectRatio,
                              Qt.SmoothTransformation)
         self.scene = QGraphicsScene()
@@ -44,7 +44,7 @@ class PartViewer(QGraphicsView):
 
     def resetZoom(self):
         ''' Go back to a scale of 1.0 '''
-        self.fitInView(QRectF(0, 0, self.width, self.height))
+        self.fitInView(QRectF(0, 0, self.settings['width'], self.settings['height']))
 
     def wheelEvent(self, event):
         ''' If the wheel is scrolled; figure out how much to zoom '''
@@ -52,7 +52,7 @@ class PartViewer(QGraphicsView):
         self.total_steps += steps
         if (self.total_steps * steps) < 0:
             self.total_steps = steps  # Zoom out by steps
-        factor = 1.0 + steps/10.0
+        factor = 1.0 + (steps / 10.0)
         self.settings['factor'] *= factor
         if self.settings['factor'] < .6:
             self.settings['factor'] = .6
@@ -67,11 +67,11 @@ class PartViewer(QGraphicsView):
         part_cols = self.part.getColumns()
         part_rows = self.part.getRows()
         self.scaleBoxSize(part_cols, part_rows)
-        img = QImage(self.settings['width'],
-                     self.settings['height'] + (self.box_size / 2),
-                     QImage.Format_RGB32)  # 2k image
-        img.fill(QColor('#ffffff'))  # Background Color
-        paint = QPainter(img)
+        self.image = QImage(self.settings['width'],
+                            self.settings['height'] + (self.box_size / 2),
+                            QImage.Format_RGB32)  # 2k image
+        self.image.fill(QColor('#ffffff'))  # Background Color
+        paint = QPainter(self.image)
         paint.setRenderHints(QPainter.HighQualityAntialiasing |
                              QPainter.SmoothPixmapTransform |
                              QPainter.TextAntialiasing, True)
@@ -96,7 +96,10 @@ class PartViewer(QGraphicsView):
                                   self.box_size * y_offset + self.box_size,
                                   self.box_size,
                                   self.box_size)
-                    paint.drawRect(rect)
+                    if self.settings['circles']:
+                        paint.drawEllipse(rect)
+                    else:
+                        paint.drawRect(rect)
                     paint.drawText(rect, Qt.AlignCenter, pin['name'][:6])
             paint.drawText(QRectF(self.box_size * len(part_cols) + (self.box_size / 2),
                                   self.box_size * y_offset + self.box_size,
@@ -105,7 +108,6 @@ class PartViewer(QGraphicsView):
                            Qt.AlignCenter,
                            row)
         paint.end()
-        self.image = img
 
     def save(self):
         ''' Save the Pixmap as a .png '''
@@ -284,6 +286,9 @@ def parseCommandLine():
                         help='Load from a Telesis file')
     parser.add_argument('--refdes',
                         help='The refdes to pull from the Telesis')
+    parser.add_argument('--circles', '-c',
+                        action='store_true',
+                        help='Draw using circles instead of rectangles')  
     parser.add_argument('--rotate', '-r',
                         action='store_true',
                         help='Rotate the image by 90 degrees')
@@ -317,9 +322,9 @@ def main():
                      'height': screen_resolution.height(),
                      'title': basename(args.filename).split('.')[0],
                      'rotate': args.rotate,
+                     'circles': args.circles,
                      'factor': 1.0}
     view = PartViewer(part, view_settings)
-    view.generateRender()
     if not args.nogui:
         view.initUI()
     if args.dump:
