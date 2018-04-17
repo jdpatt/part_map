@@ -29,22 +29,17 @@ class PartViewer(QGraphicsView):
     def initUI(self):
         ''' Init all the UI elements '''
         self.setWindowTitle(self.settings['title'])
+        self.resize(self.settings['width'], self.settings['height'])
         pixmap = QPixmap.fromImage(self.image)
-        item = pixmap.scaled(self.settings['width'],
-                             self.settings['height'],
-                             Qt.KeepAspectRatio,
-                             Qt.SmoothTransformation)
         self.scene = QGraphicsScene()
-        self.scene.addPixmap(item)
+        self.scene.addPixmap(pixmap)
         self.setScene(self.scene)
         self.setTransformationAnchor(self.AnchorUnderMouse)
         self.setResizeAnchor(self.AnchorUnderMouse)
         self.setDragMode(self.ScrollHandDrag)
+        self.fitInView(QRectF(0, 0, self.settings['width'],
+                              self.settings['height']), Qt.KeepAspectRatio)
         self.show()
-
-    def resetZoom(self):
-        ''' Go back to a scale of 1.0 '''
-        self.fitInView(QRectF(0, 0, self.settings['width'], self.settings['height']))
 
     def wheelEvent(self, event):
         ''' If the wheel is scrolled; figure out how much to zoom '''
@@ -54,8 +49,8 @@ class PartViewer(QGraphicsView):
             self.total_steps = steps  # Zoom out by steps
         factor = 1.0 + (steps / 10.0)
         self.settings['factor'] *= factor
-        if self.settings['factor'] < .6:
-            self.settings['factor'] = .6
+        if self.settings['factor'] < .3:
+            self.settings['factor'] = .3
         elif self.settings['factor'] > 5:
             self.settings['factor'] = 5
             return
@@ -67,16 +62,16 @@ class PartViewer(QGraphicsView):
         part_cols = self.part.getColumns()
         part_rows = self.part.getRows()
         self.scaleBoxSize(part_cols, part_rows)
-        self.image = QImage(self.settings['width'],
-                            self.settings['height'] + (self.box_size / 2),
-                            QImage.Format_RGB32)  # 2k image
+        self.image = QImage(self.settings['image_width'],
+                            self.settings['image_height'] + (self.box_size / 2),
+                            QImage.Format_RGB32)
         self.image.fill(QColor('#ffffff'))  # Background Color
         paint = QPainter(self.image)
         paint.setRenderHints(QPainter.HighQualityAntialiasing |
                              QPainter.SmoothPixmapTransform |
                              QPainter.TextAntialiasing, True)
         if self.settings['rotate']:
-            paint.translate(QPoint(self.settings['width'], 0))
+            paint.translate(QPoint(self.settings['image_width'], 0))
             paint.rotate(90)
         for hdr_offset, column in enumerate(part_cols):
             paint.drawText(QRectF(hdr_offset * self.box_size + int(self.box_size / 2),
@@ -116,16 +111,16 @@ class PartViewer(QGraphicsView):
         self.image.save(save_file)
 
     def scaleBoxSize(self, columns, rows):
-        ''' If the part width is greater than 1536 (2K width) scale up or down
+        ''' If the part width is less than 1536 (2K width) scale up
         '''
         part_width = (len(columns) + 1) * self.box_size
         if part_width < 1536.0:
             window_scale = 1536.0/part_width
         else:
-            window_scale = part_width/1536.0
+            window_scale = 1
         self.box_size = int(self.box_size * window_scale)
-        self.settings['width'] = (len(columns) + 1) * self.box_size + self.box_size
-        self.settings['height'] = (len(rows) + 1) * self.box_size + self.box_size
+        self.settings['image_width'] = (len(columns) + 1) * self.box_size + self.box_size
+        self.settings['image_height'] = (len(rows) + 1) * self.box_size + self.box_size
 
 
 class PartObject(object):
@@ -288,7 +283,7 @@ def parseCommandLine():
                         help='The refdes to pull from the Telesis')
     parser.add_argument('--circles', '-c',
                         action='store_true',
-                        help='Draw using circles instead of rectangles')  
+                        help='Draw using circles instead of rectangles')
     parser.add_argument('--rotate', '-r',
                         action='store_true',
                         help='Rotate the image by 90 degrees')
