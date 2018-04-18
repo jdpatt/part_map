@@ -71,8 +71,8 @@ class PartViewer(QGraphicsView):
                              QPainter.SmoothPixmapTransform |
                              QPainter.TextAntialiasing, True)
         if self.settings['rotate']:
-            paint.translate(QPoint(self.settings['image_width'], 0))
-            paint.rotate(90)
+            part_cols.reverse()
+            part_cols, part_rows = part_rows, part_cols
         for hdr_offset, column in enumerate(part_cols):
             paint.drawText(QRectF(hdr_offset * self.box_size + int(self.box_size / 2),
                                   0,
@@ -82,7 +82,7 @@ class PartViewer(QGraphicsView):
                            column)
         for y_offset, row in enumerate(part_rows):
             for x_offset, column in enumerate(part_cols):
-                pin = self.part.getPin(str(row) + column)
+                pin = self.part.getPin(str(row), str(column))
                 if pin and pin['name'] is not None:
                     fill = pin['color']
                     brush = QBrush(QColor(fill))
@@ -191,10 +191,12 @@ class PartObject(object):
         ''' Get the rows in a part.  [1-n] '''
         return self.__rows
 
-    def getPin(self, pin):
+    def getPin(self, prefix, suffix):
         ''' Get the name and color of a pin '''
-        if pin in self.__pins:
-            return self.__pins[pin]
+        if prefix + suffix in self.__pins:
+            return self.__pins[prefix + suffix]
+        elif suffix + prefix in self.__pins:
+            return self.__pins[suffix + prefix]
         return None
 
     def getPins(self):

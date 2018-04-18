@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='part_map',
-      version='1.2.2',
+      version='1.2.3',
       description='Part Visualizer',
       url='https://github.com/jdpatt/part_map',
       author='David Patterson',
