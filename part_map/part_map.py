@@ -1,22 +1,22 @@
-#!/Library/Frameworks/Python.framework/Versions/3.6/bin/python3
 ''' Visual pinout of a bga or connector '''
 from re import split, match, findall
 from sys import argv
-from logging import basicConfig, getLogger, INFO
 from json import load, dump
-from os.path import join, basename
-from os import getcwd
+from pathlib import Path
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from typing import List, Dict, Union, Iterator, Tuple
+
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string
 from natsort import natsorted
 from PyQt5.QtWidgets import QApplication, QGraphicsView, QGraphicsScene
 from PyQt5.QtGui import QPainter, QBrush, QColor, QImage, QPixmap
-from PyQt5.QtCore import QRectF, Qt, QPoint
+from PyQt5.QtCore import QRectF, Qt
 
 
 class PartViewer(QGraphicsView):
     ''' Create a render of the part and load it into a QWidget '''
+
     def __init__(self, part, partview_settings):
         self.settings = partview_settings
         self.part = part
@@ -24,9 +24,9 @@ class PartViewer(QGraphicsView):
         self.box_size = 50
         self.total_steps = 0
         super(PartViewer, self).__init__()
-        self.generateRender()
+        self.generate_render()
 
-    def initUI(self):
+    def initUI(self) -> None:  # pylint: disable=C0103
         ''' Init all the UI elements '''
         self.setWindowTitle(self.settings['title'])
         self.resize(self.settings['width'], self.settings['height'])
@@ -41,7 +41,7 @@ class PartViewer(QGraphicsView):
                               self.settings['height']), Qt.KeepAspectRatio)
         self.show()
 
-    def wheelEvent(self, event):
+    def wheelEvent(self, event) -> None:  # pylint: disable=C0103
         ''' If the wheel is scrolled; figure out how much to zoom '''
         steps = (event.angleDelta().y() / 120)
         self.total_steps += steps
@@ -57,11 +57,11 @@ class PartViewer(QGraphicsView):
         else:
             self.scale(factor, factor)
 
-    def generateRender(self):
+    def generate_render(self) -> None:
         ''' Generate the part '''
-        part_cols = self.part.getColumns()
-        part_rows = self.part.getRows()
-        self.scaleBoxSize(part_cols, part_rows)
+        part_cols = self.part.get_columns()
+        part_rows = self.part.get_rows()
+        self.scale_box_size(part_cols, part_rows)
         self.image = QImage(self.settings['image_width'],
                             self.settings['image_height'] + (self.box_size / 2),
                             QImage.Format_RGB32)
@@ -82,7 +82,7 @@ class PartViewer(QGraphicsView):
                            column)
         for y_offset, row in enumerate(part_rows):
             for x_offset, column in enumerate(part_cols):
-                pin = self.part.getPin(str(row), str(column))
+                pin = self.part.get_pin(str(row), str(column))
                 if pin and pin['name'] is not None:
                     fill = pin['color']
                     brush = QBrush(QColor(fill))
@@ -104,18 +104,18 @@ class PartViewer(QGraphicsView):
                            row)
         paint.end()
 
-    def save(self):
+    def save(self) -> None:
         ''' Save the Pixmap as a .png '''
-        save_file = join(PATH, self.settings['title'] + '.png')
+        save_file = PATH.joinpath(f'{self.settings["title"]}.png')
         print(f'Saved to {save_file}')
         self.image.save(save_file)
 
-    def scaleBoxSize(self, columns, rows):
+    def scale_box_size(self, columns: List, rows: List) -> None:
         ''' If the part width is less than 1536 (2K width) scale up
         '''
         part_width = (len(columns) + 1) * self.box_size
         if part_width < 1536.0:
-            window_scale = 1536.0/part_width
+            window_scale = 1536.0 / part_width
         else:
             window_scale = 1
         self.box_size = int(self.box_size * window_scale)
@@ -125,14 +125,15 @@ class PartViewer(QGraphicsView):
 
 class PartObject(object):
     ''' Load and create a part from a source '''
+
     def __init__(self, pins, filename):
         super(PartObject, self).__init__()
         self.__pins = pins
-        self.__columns, self.__rows = self.sortAndSpiltPinList()
-        self.filename = basename(filename).split('.')[0]
+        self.__columns, self.__rows = self.sort_and_split_pin_list()
+        self.filename = Path(filename).stem
 
     @classmethod
-    def fromExcel(cls, filename):
+    def from_excel(cls, filename):
         ''' Import an Excel and create a PartObject '''
         number = 'Number'
         name = 'Name'
@@ -140,7 +141,7 @@ class PartObject(object):
         sheet = workbook.active  # Grab the first sheet
         header = sheet.iter_cols(max_row=1)
         try:
-            column = getColIndexOfHeader([number, name], header)
+            column = get_col_index([number, name], header)
             bga = dict()
             for excel_row in range(2, sheet.max_row + 1):
                 pin = sheet.cell(row=excel_row, column=column[number]).value
@@ -158,7 +159,7 @@ class PartObject(object):
         return cls(bga, filename)
 
     @classmethod
-    def fromTelesis(cls, filename, refdes):
+    def from_telesis(cls, filename, refdes):
         ''' Import a Telesis formatted file and create a PartObject '''
         with open(filename, 'r') as tel_file:
             tel_text = tel_file.readlines()
@@ -175,23 +176,23 @@ class PartObject(object):
         return cls(tel_netlist, filename)
 
     @classmethod
-    def fromJson(cls, filename):
+    def from_json(cls, filename):
         ''' Import a json file with a format {pin: {name:, color:}} '''
         return cls(load(open(filename)), filename)
 
-    def addPin(self, pin, net, color):
+    def add_pin(self, pin: str, net: str, color: str) -> None:
         ''' Add a new pin to the part '''
         self.__pins.update({pin: {'name': net, 'color': color}})
 
-    def getColumns(self):
+    def get_columns(self) -> List:
         ''' Get the columns in a part. [A - AZ] '''
         return self.__columns
 
-    def getRows(self):
+    def get_rows(self) -> List:
         ''' Get the rows in a part.  [1-n] '''
         return self.__rows
 
-    def getPin(self, prefix, suffix):
+    def get_pin(self, prefix: str, suffix: str) -> Union[str, None]:
         ''' Get the name and color of a pin '''
         if prefix + suffix in self.__pins:
             return self.__pins[prefix + suffix]
@@ -199,30 +200,30 @@ class PartObject(object):
             return self.__pins[suffix + prefix]
         return None
 
-    def getPins(self):
+    def get_pins(self):
         ''' Return the pin names '''
         return self.__pins.keys()
 
-    def getNumberofPins(self):
+    def get_number_of_pins(self):
         ''' Return how many pins are in the part '''
         return len(self.__pins)
 
-    def getNames(self):
+    def get_net_names(self):
         ''' Return the net names '''
         return self.__pins.values()['name']
 
-    def dumpJson(self):
+    def dump_json(self):
         ''' Dump the PartObject dictionary to a .json file '''
-        save_file = join(PATH, self.filename + '.json')
+        save_file = PATH.joinpath(f'{self.filename}.json')
         print(f'Saved to {save_file}')
         with open(save_file, 'w') as outfile:
             dump(self.__pins, outfile, indent=4, separators=(',', ': '))
 
-    def sortAndSpiltPinList(self):
+    def sort_and_split_pin_list(self) -> Tuple[List, List]:
         ''' Take a list of pins and spilt by letter and number then sort '''
-        r_list = list()
+        r_list: List = list()
         c_list = list()
-        for pin in self.getPins():
+        for pin in self.get_pins():
             split_pin = split(r'(\d+)', pin)
             if split_pin[0] not in r_list:
                 r_list.append(split_pin[0])
@@ -239,7 +240,7 @@ class PartObject(object):
         return natsorted(set(c_list)), temp2
 
 
-def getColIndexOfHeader(name, columns):
+def get_col_index(name: List, columns: Iterator) -> Dict:
     ''' return a list of the column numbers if it matches '''
     indexes = dict()
     for col in columns:
@@ -249,18 +250,7 @@ def getColIndexOfHeader(name, columns):
     return indexes
 
 
-def setupLogger(logger_filename):
-    ''' Configure a logger at the current level= setting '''
-    log_file = join(PATH, logger_filename)
-    basicConfig(filename=log_file,
-                format='%(levelname)s: %(message)s',
-                filemode="w",
-                level=INFO)
-    logger = getLogger('root')
-    return logger
-
-
-def parseCommandLine():
+def parse_cmd_line():
     ''' Handle any command line input '''
     usage = '''USAGE:
     part_map.py -e part_spreadsheet.xlsx
@@ -301,23 +291,23 @@ def parseCommandLine():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     ''' Handle all the input and create the viewer '''
-    args = parseCommandLine()
+    args = parse_cmd_line()
     if args.excel:
-        part = PartObject.fromExcel(args.filename)
+        part = PartObject.from_excel(args.filename)
     elif args.json:
-        part = PartObject.fromJson(args.filename)
+        part = PartObject.from_json(args.filename)
     elif args.tel:
-        part = PartObject.fromTelesis(args.filename, args.refdes)
+        part = PartObject.from_telesis(args.filename, args.refdes)
     else:
         exit()
-    global APP
+    global APP  # pylint: disable=w0603
     APP = QApplication(argv)
     screen_resolution = APP.desktop().screenGeometry()
     view_settings = {'width': screen_resolution.width(),
                      'height': screen_resolution.height(),
-                     'title': basename(args.filename).split('.')[0],
+                     'title': Path(args.filename).stem,
                      'rotate': args.rotate,
                      'circles': args.circles,
                      'factor': 1.0}
@@ -325,7 +315,7 @@ def main():
     if not args.nogui:
         view.initUI()
     if args.dump:
-        part.dumpJson()
+        part.dump_json()
     if args.save:
         view.save()
     if args.nogui:
@@ -335,9 +325,8 @@ def main():
 
 
 APP = None
-PATH = getcwd()
-# Setup Global Logger module
-# LOG = setupLogger('part_map.txt')
+PATH = Path.cwd()
+
 
 if __name__ == '__main__':
     main()
