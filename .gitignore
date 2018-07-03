@@ -1,2 +1,6 @@
 .tox/
 part_map.egg-info/
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
