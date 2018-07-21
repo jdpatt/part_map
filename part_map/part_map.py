@@ -142,7 +142,7 @@ class PartViewer(QGraphicsView):
         self.settings["image_height"] = (len(rows) + 1) * self.box_size + self.box_size
 
 
-class PartObject(object):
+class PartObject():
     """ Load and create a part from a source """
 
     def __init__(self, pins, filename):
@@ -217,11 +217,12 @@ class PartObject(object):
 
     def get_pin(self, prefix: str, suffix: str) -> Union[str, None]:
         """ Get the name and color of a pin """
+        pin = None
         if prefix + suffix in self.__pins:
-            return self.__pins[prefix + suffix]
+            pin = self.__pins[prefix + suffix]
         elif suffix + prefix in self.__pins:
-            return self.__pins[suffix + prefix]
-        return None
+            pin = self.__pins[suffix + prefix]
+        return pin
 
     def get_pins(self):
         """ Return the pin names """
