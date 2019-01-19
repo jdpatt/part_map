@@ -38,8 +38,7 @@ class PartViewer(QGraphicsView):
         self.setResizeAnchor(self.AnchorUnderMouse)
         self.setDragMode(self.ScrollHandDrag)
         self.fitInView(
-            QRectF(0, 0, self.settings["width"], self.settings["height"]),
-            Qt.KeepAspectRatio,
+            QRectF(0, 0, self.settings["width"], self.settings["height"]), Qt.KeepAspectRatio
         )
         self.show()
 
@@ -51,8 +50,8 @@ class PartViewer(QGraphicsView):
             self.total_steps = steps  # Zoom out by steps
         factor = 1.0 + (steps / 10.0)
         self.settings["factor"] *= factor
-        if self.settings["factor"] < .3:
-            self.settings["factor"] = .3
+        if self.settings["factor"] < 0.3:
+            self.settings["factor"] = 0.3
         elif self.settings["factor"] > 5:
             self.settings["factor"] = 5
             return
@@ -136,13 +135,11 @@ class PartViewer(QGraphicsView):
         else:
             window_scale = 1
         self.box_size = int(self.box_size * window_scale)
-        self.settings["image_width"] = (
-            len(columns) + 1
-        ) * self.box_size + self.box_size
+        self.settings["image_width"] = (len(columns) + 1) * self.box_size + self.box_size
         self.settings["image_height"] = (len(rows) + 1) * self.box_size + self.box_size
 
 
-class PartObject():
+class PartObject:
     """ Load and create a part from a source """
 
     def __init__(self, pins, filename):
@@ -281,39 +278,21 @@ def parse_cmd_line():
     part_map.py -rsdt part.tel"""
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter, epilog=usage)
     parser.add_argument(
-        "filename",
-        nargs="?",
-        default="artix7_example.xlsx",
-        help="The  file to read in",
+        "filename", nargs="?", default="artix7_example.xlsx", help="The  file to read in"
     )
-    parser.add_argument(
-        "--excel", "-e", action="store_true", help="Load from an excel file"
-    )
-    parser.add_argument(
-        "--json", "-j", action="store_true", help="Load from a json file"
-    )
-    parser.add_argument(
-        "--tel", "-t", action="store_true", help="Load from a Telesis file"
-    )
+    parser.add_argument("--excel", "-e", action="store_true", help="Load from an excel file")
+    parser.add_argument("--json", "-j", action="store_true", help="Load from a json file")
+    parser.add_argument("--tel", "-t", action="store_true", help="Load from a Telesis file")
     parser.add_argument("--refdes", help="The refdes to pull from the Telesis")
     parser.add_argument(
-        "--circles",
-        "-c",
-        action="store_true",
-        help="Draw using circles instead of rectangles",
+        "--circles", "-c", action="store_true", help="Draw using circles instead of rectangles"
     )
     parser.add_argument(
         "--rotate", "-r", action="store_true", help="Rotate the image by 90 degrees"
     )
-    parser.add_argument(
-        "--save", "-s", action="store_true", help="Save the image as a .png"
-    )
-    parser.add_argument(
-        "--dump", "-d", action="store_true", help="Dump PartObject as a Json File"
-    )
-    parser.add_argument(
-        "--nogui", "-n", action="store_true", help="Do not open GUI window"
-    )
+    parser.add_argument("--save", "-s", action="store_true", help="Save the image as a .png")
+    parser.add_argument("--dump", "-d", action="store_true", help="Dump PartObject as a Json File")
+    parser.add_argument("--nogui", "-n", action="store_true", help="Do not open GUI window")
     return parser.parse_args()
 
 

@@ -1,0 +1,4 @@
+openpyxl
+natsort
+PyQt5
+tox
