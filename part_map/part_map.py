@@ -1,17 +1,16 @@
-""" Visual pinout of a bga or connector """
-from re import split, match, findall
-from sys import argv
-from json import load, dump
+""" Visual pin out of a BGA or connector """
+import re
+import sys
+import json
 from pathlib import Path
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
-from typing import List, Dict, Union, Iterator, Tuple
+from typing import List, Dict, Union, Tuple
 
+import click
 from openpyxl import load_workbook
-from openpyxl.utils import column_index_from_string
 from natsort import natsorted
-from PyQt5.QtWidgets import QApplication, QGraphicsView, QGraphicsScene
-from PyQt5.QtGui import QPainter, QBrush, QColor, QImage, QPixmap
-from PyQt5.QtCore import QRectF, Qt
+from PySide2.QtWidgets import QApplication, QGraphicsView, QGraphicsScene
+from PySide2.QtGui import QPainter, QBrush, QColor, QImage, QPixmap
+from PySide2.QtCore import QRectF, Qt
 
 
 class PartViewer(QGraphicsView):
@@ -71,9 +70,9 @@ class PartViewer(QGraphicsView):
         self.image.fill(QColor("#ffffff"))  # Background Color
         paint = QPainter(self.image)
         paint.setRenderHints(
-            QPainter.HighQualityAntialiasing |
-            QPainter.SmoothPixmapTransform |
-            QPainter.TextAntialiasing,
+            QPainter.HighQualityAntialiasing
+            | QPainter.SmoothPixmapTransform
+            | QPainter.TextAntialiasing,
             True,
         )
         if self.settings["rotate"]:
@@ -107,7 +106,8 @@ class PartViewer(QGraphicsView):
                         paint.drawEllipse(rect)
                     else:
                         paint.drawRect(rect)
-                    paint.drawText(rect, Qt.AlignCenter, pin["name"][:6])
+                    if not self.settings["labels"]:
+                        paint.drawText(rect, Qt.AlignCenter, pin["name"][:6])
             paint.drawText(
                 QRectF(
                     self.box_size * len(part_cols) + int(self.box_size / 2),
@@ -155,9 +155,8 @@ class PartObject:
         name = "Name"
         workbook = load_workbook(filename)
         sheet = workbook.active  # Grab the first sheet
-        header = sheet.iter_cols(max_row=1)
         try:
-            column = get_col_index([number, name], header)
+            column = get_col_index([number, name], sheet)
             bga = dict()
             for excel_row in range(2, sheet.max_row + 1):
                 pin = sheet.cell(row=excel_row, column=column[number]).value
@@ -186,8 +185,8 @@ class PartObject:
             tel_text = tel_file.readlines()
         tel_netlist = dict()
         for line in tel_text:
-            reg = match(r"(.*);", line)
-            reg2 = findall(refdes + r"\.([a-zA-Z0-9]+)", line)
+            reg = re.match(r"(.*);", line)
+            reg2 = re.findall(refdes + r"\.([a-zA-Z0-9]+)", line)
             if reg and reg2:
                 net = reg.group(1)
                 for reg_match in reg2:
@@ -198,18 +197,24 @@ class PartObject:
     @classmethod
     def from_json(cls, filename):
         """ Import a json file with a format {pin: {name:, color:}} """
-        return cls(load(open(filename)), filename)
+        return cls(json.load(open(filename)), filename)
 
     def add_pin(self, pin: str, net: str, color: str) -> None:
-        """ Add a new pin to the part """
+        """ Add a new pin to the part.
+        
+        Args:
+            pin: The Pin Number. (A12)
+            net: The functional name of the net. (USB_P)
+            color: The color to fill with.
+        """
         self.__pins.update({pin: {"name": net, "color": color}})
 
     def get_columns(self) -> List:
-        """ Get the columns in a part. [A - AZ] """
+        """ Get the columns in a part. [1-n] """
         return self.__columns
 
     def get_rows(self) -> List:
-        """ Get the rows in a part.  [1-n] """
+        """ Get the rows in a part.  [A - AZ] """
         return self.__rows
 
     def get_pin(self, prefix: str, suffix: str) -> Union[str, None]:
@@ -238,14 +243,14 @@ class PartObject:
         save_file = PATH.joinpath(f"{self.filename}.json")
         print(f"Saved to {save_file}")
         with open(save_file, "w") as outfile:
-            dump(self.__pins, outfile, indent=4, separators=(",", ": "))
+            json.dump(self.__pins, outfile, indent=4, separators=(",", ": "))
 
     def sort_and_split_pin_list(self) -> Tuple[List, List]:
         """ Take a list of pins and spilt by letter and number then sort """
         r_list: List = list()
         c_list = list()
         for pin in self.get_pins():
-            split_pin = split(r"(\d+)", pin)
+            split_pin = re.split(r"(\d+)", pin)
             if split_pin[0] not in r_list:
                 r_list.append(split_pin[0])
             c_list.append(split_pin[1])
@@ -261,74 +266,67 @@ class PartObject:
         return natsorted(set(c_list)), temp2
 
 
-def get_col_index(name: List, columns: Iterator) -> Dict:
+def get_col_index(name: List, worksheet) -> Dict:
     """ return a list of the column numbers if it matches """
     indexes = dict()
-    for col in columns:
-        if col[0].value in name:  # Only look at the first row
-            indexes.update({col[0].value: column_index_from_string(col[0].column)})
+    for rows in worksheet.iter_rows(min_row=1, max_row=1, min_col=1):
+        for column in rows:
+            if column.value in name:
+                indexes.update({column.value: column.col_idx})
     return indexes
 
 
-def parse_cmd_line():
-    """ Handle any command line input """
-    usage = """USAGE:
-    part_map.py -e part_spreadsheet.xlsx
-    part_map.py -j part.json
-    part_map.py -rsdt part.tel"""
-    parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter, epilog=usage)
-    parser.add_argument(
-        "filename", nargs="?", default="artix7_example.xlsx", help="The  file to read in"
-    )
-    parser.add_argument("--excel", "-e", action="store_true", help="Load from an excel file")
-    parser.add_argument("--json", "-j", action="store_true", help="Load from a json file")
-    parser.add_argument("--tel", "-t", action="store_true", help="Load from a Telesis file")
-    parser.add_argument("--refdes", help="The refdes to pull from the Telesis")
-    parser.add_argument(
-        "--circles", "-c", action="store_true", help="Draw using circles instead of rectangles"
-    )
-    parser.add_argument(
-        "--rotate", "-r", action="store_true", help="Rotate the image by 90 degrees"
-    )
-    parser.add_argument("--save", "-s", action="store_true", help="Save the image as a .png")
-    parser.add_argument("--dump", "-d", action="store_true", help="Dump PartObject as a Json File")
-    parser.add_argument("--nogui", "-n", action="store_true", help="Do not open GUI window")
-    return parser.parse_args()
+@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
+@click.version_option()
+@click.argument("filename", type=click.Path(exists=True))
+@click.argument("file-type", type=click.Choice(["json", "tel", "excel"]))
+@click.option("--refdes", help="The refdes to pull from the Telesis.")
+@click.option("--circles", "-c", is_flag=True, help="Draw using circles instead of rectangles.")
+@click.option("--crosshair", is_flag=True, help="Divide the diagram into four quadrants.")
+@click.option("--rotate", "-r", is_flag=True, help="Rotate the image by 90 degrees.")
+@click.option("--no-labels", is_flag=True, help="Disable the text labels.")
+@click.option("--save", "-s", is_flag=True, help="Save the image as a .png.")
+@click.option("--dump", "-d", is_flag=True, help="Dump PartObject as a Json File.")
+@click.option("--nogui", "-n", is_flag=True, help="Do not open GUI window.")
+def cli(**kwargs) -> None:
+    """Generate a visualization of a part to help with pinout or general planning.
+    Helpful in the early stages of design before layout begins.  Can use it for
+    anything that is on a grid.
+    """
+    print(kwargs)
+    filename = Path(kwargs["filename"])
+    if kwargs["file_type"] == "excel":
+        part = PartObject.from_excel(filename)
+    elif kwargs["file_type"] == "json":
+        part = PartObject.from_json(filename)
+    elif kwargs["file_type"] == "tel":
+        part = PartObject.from_telesis(filename, kwargs["refdes"])
 
-
-def main() -> None:
-    """ Handle all the input and create the viewer """
-    args = parse_cmd_line()
-    if args.excel:
-        part = PartObject.from_excel(args.filename)
-    elif args.json:
-        part = PartObject.from_json(args.filename)
-    elif args.tel:
-        part = PartObject.from_telesis(args.filename, args.refdes)
-    else:
-        exit()
     global APP  # pylint: disable=w0603
-    APP = QApplication(argv)
+    APP = QApplication(sys.argv)
     screen_resolution = APP.desktop().screenGeometry()
     view_settings = {
         "width": screen_resolution.width(),
         "height": screen_resolution.height(),
-        "title": Path(args.filename).stem,
-        "rotate": args.rotate,
-        "circles": args.circles,
+        "title": filename.stem,
+        "rotate": kwargs["rotate"],
+        "circles": kwargs["circles"],
+        "labels": kwargs["no_labels"],
         "factor": 1.0,
     }
+
     view = PartViewer(part, view_settings)
-    if not args.nogui:
+ 
+    if not kwargs["nogui"]:
         view.initUI()
-    if args.dump:
+    if kwargs["dump"]:
         part.dump_json()
-    if args.save:
+    if kwargs["save"]:
         view.save()
-    if args.nogui:
+    if kwargs["nogui"]:
         APP.closeAllWindows()
     else:
-        exit(APP.exec())
+        sys.exit(APP.exec_())
 
 
 APP = None
@@ -336,4 +334,4 @@ PATH = Path.cwd()
 
 
 if __name__ == "__main__":
-    main()
+    cli()

@@ -14,9 +14,9 @@ setup(
     url="https://github.com/jdpatt/part_map",
     author="David Patterson",
     license="MIT",
-    python_requires=">=3.4",
+    python_requires=">=3.7",
     packages=["part_map"],
-    install_requires=["openpyxl", "natsort", "PyQt5"],
-    entry_points={"console_scripts": ["part_map = part_map.part_map:main"]},
+    install_requires=["openpyxl", "Click", "natsort", "PySide2"],
+    entry_points={"console_scripts": ["part-map = part_map.part_map:cli"]},
     zip_safe=False,
 )

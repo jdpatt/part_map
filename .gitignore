@@ -4,3 +4,6 @@ part_map.egg-info/
 htmlcov/
 .pytest_cache/
 .mypy_cache/
+.venv
+.vscode
+__pycache__

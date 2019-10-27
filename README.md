@@ -6,27 +6,23 @@ anything that is on a grid.
 
 ### Usage
 ```
-usage: part_map.py [-h] [--excel] [--json] [--tel] [--rotate] [--save]
-                    [--dump] [--nogui]
-                    [filename]
+$ part-map -h
+Usage: part-map [OPTIONS] FILENAME [json|tel|excel]
 
-positional arguments:
-  filename      The file to read in
+  Generate a visualization of a part to help with pinout or general
+  planning. Helpful in the early stages of design before layout begins.  Can
+  use it for anything that is on a grid.
 
-optional arguments:
-  -h, --help    show this help message and exit
-  --excel, -e   Load from an Excel file
-  --json, -j    Load from a Json file
-  --tel, -t     Load from a Telesis file
-  --rotate, -r  Rotate the image by 90 degrees
-  --save, -s    Save the image as a .png
-  --dump, -d    Dump PartObject as a Json File
-  --nogui, -n   Do not open GUI window
-
-USAGE:
-    part_map.py -e part_spreadsheet.xlsx
-    part_map.py -j part.json
-    part_map.py -rsdt part.tel
+Options:
+  --version      Show the version and exit.
+  --refdes TEXT  The refdes to pull from the Telesis.
+  -c, --circles  Draw using circles instead of rectangles.
+  -r, --rotate   Rotate the image by 90 degrees.
+  --no-labels    Disable the text labels.
+  -s, --save     Save the image as a .png.
+  -d, --dump     Dump PartObject as a Json File.
+  -n, --nogui    Do not open GUI window.
+  -h, --help     Show this message and exit.
 ```
 
 ### Example of a Artix7
