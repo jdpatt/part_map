@@ -282,7 +282,7 @@ def get_col_index(name: List, worksheet) -> Dict:
 @click.argument("file-type", type=click.Choice(["json", "tel", "excel"]))
 @click.option("--refdes", help="The refdes to pull from the Telesis.")
 @click.option("--circles", "-c", is_flag=True, help="Draw using circles instead of rectangles.")
-@click.option("--crosshair", is_flag=True, help="Divide the diagram into four quadrants.")
+# @click.option("--crosshair", is_flag=True, help="Divide the diagram into four quadrants.")
 @click.option("--rotate", "-r", is_flag=True, help="Rotate the image by 90 degrees.")
 @click.option("--no-labels", is_flag=True, help="Disable the text labels.")
 @click.option("--save", "-s", is_flag=True, help="Save the image as a .png.")
@@ -311,6 +311,7 @@ def cli(**kwargs) -> None:
         "title": filename.stem,
         "rotate": kwargs["rotate"],
         "circles": kwargs["circles"],
+        # "crosshair": kwargs["crosshair"],
         "labels": kwargs["no_labels"],
         "factor": 1.0,
     }
