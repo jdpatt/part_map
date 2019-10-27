@@ -1,38 +1,67 @@
 """ Visual pin out of a BGA or connector """
+import json
 import re
 import sys
-import json
 from pathlib import Path
-from typing import List, Dict, Union, Tuple
+from typing import Dict, List, Tuple, Union
 
 import click
-from openpyxl import load_workbook
+
 from natsort import natsorted
-from PySide2.QtWidgets import QApplication, QGraphicsView, QGraphicsScene
-from PySide2.QtGui import QPainter, QBrush, QColor, QImage, QPixmap
+from openpyxl import load_workbook
 from PySide2.QtCore import QRectF, Qt
+from PySide2.QtGui import QBrush, QColor, QImage, QKeySequence, QPainter, QPixmap
+from PySide2.QtWidgets import QAction, QApplication, QGraphicsScene, QGraphicsView, QMenu
 
 
 class PartViewer(QGraphicsView):
     """ Create a render of the part and load it into a QWidget """
 
     def __init__(self, part, partview_settings):
+        super(PartViewer, self).__init__()
         self.settings = partview_settings
         self.part = part
         self.image = None
         self.box_size = 50
         self.total_steps = 0
-        super(PartViewer, self).__init__()
         self.generate_render()
 
     def initUI(self) -> None:  # pylint: disable=C0103
         """ Init all the UI elements """
         self.setWindowTitle(self.settings["title"])
+
+        self.save_action = QAction(
+            "Save as Png", self, shortcut=QKeySequence.Save, statusTip="Save to .png", triggered=self.save
+        )
+
+        self.toggle_action = QAction(
+            "Toggle Shape",
+            self,
+            shortcut="Ctrl+R",
+            statusTip="Switch styles between circles or squares and redraw.",
+            triggered=self.toggle_style,
+        )
+
+        self.rotate_action = QAction(
+            "Rotate",
+            self,
+            shortcut="Ctrl+R",
+            statusTip="Rotate the diagram 90 degrees and redraw.",
+            triggered=self.rotate_drawing,
+        )
+
+        self.dump_action = QAction(
+            "Save as Json",
+            self,
+            shortcut="Ctrl+Shift+S",
+            statusTip="Save the partObject as a json file.",
+            triggered=self.part.dump_json,
+        )
+
         self.resize(self.settings["width"], self.settings["height"])
-        pixmap = QPixmap.fromImage(self.image)
-        scene = QGraphicsScene()
-        scene.addPixmap(pixmap)
-        self.setScene(scene)
+        self.scene = QGraphicsScene()
+        self.redraw()
+        self.setScene(self.scene)
         self.setTransformationAnchor(self.AnchorUnderMouse)
         self.setResizeAnchor(self.AnchorUnderMouse)
         self.setDragMode(self.ScrollHandDrag)
@@ -40,22 +69,6 @@ class PartViewer(QGraphicsView):
             QRectF(0, 0, self.settings["width"], self.settings["height"]), Qt.KeepAspectRatio
         )
         self.show()
-
-    def wheelEvent(self, event) -> None:  # pylint: disable=C0103
-        """ If the wheel is scrolled; figure out how much to zoom """
-        steps = event.angleDelta().y() / 120
-        self.total_steps += steps
-        if (self.total_steps * steps) < 0:
-            self.total_steps = steps  # Zoom out by steps
-        factor = 1.0 + (steps / 10.0)
-        self.settings["factor"] *= factor
-        if self.settings["factor"] < 0.3:
-            self.settings["factor"] = 0.3
-        elif self.settings["factor"] > 5:
-            self.settings["factor"] = 5
-            return
-        else:
-            self.scale(factor, factor)
 
     def generate_render(self) -> None:
         """ Generate the part """
@@ -124,7 +137,7 @@ class PartViewer(QGraphicsView):
         """ Save the Pixmap as a .png """
         save_file = PATH.joinpath(f'{self.settings["title"]}.png')
         print(f"Saved to {save_file}")
-        self.image.save(save_file)
+        self.image.save(str(save_file))
 
     def scale_box_size(self, columns: List, rows: List) -> None:
         """ If the part width is less than 1536 (2K width) scale up
@@ -137,6 +150,56 @@ class PartViewer(QGraphicsView):
         self.box_size = int(self.box_size * window_scale)
         self.settings["image_width"] = (len(columns) + 1) * self.box_size + self.box_size
         self.settings["image_height"] = (len(rows) + 1) * self.box_size + self.box_size
+
+    def redraw(self):
+        """Update the current pixmap."""
+        self.scene.clear()
+        pixmap = QPixmap.fromImage(self.image)
+        self.scene.addPixmap(pixmap)
+
+    def toggle_style(self):
+        """Change between circles or squares."""
+        if self.settings["circles"]:  # If true, set to false for rectangles.
+            self.settings["circles"] = False
+        else:
+            self.settings["circles"] = True
+        self.generate_render()
+        self.redraw()
+
+    def rotate_drawing(self):
+        """Rotate the diagram."""
+        if self.settings["rotate"]:
+            self.settings["rotate"] = False
+        else:
+            self.settings["rotate"] = True
+        self.generate_render()
+        self.redraw()
+
+    def contextMenuEvent(self, event):
+        """ Add the ability to expose the command line switches via a context menu."""
+        menu = QMenu(self)
+        menu.addAction(self.save_action)
+        menu.addAction(self.dump_action)
+        menu.addSeparator()
+        menu.addAction(self.toggle_action)
+        menu.addAction(self.rotate_action)
+        menu.exec_(event.globalPos())
+
+    def wheelEvent(self, event) -> None:  # pylint: disable=C0103
+        """ If the wheel is scrolled; figure out how much to zoom """
+        steps = event.angleDelta().y() / 120
+        self.total_steps += steps
+        if (self.total_steps * steps) < 0:
+            self.total_steps = steps  # Zoom out by steps
+        factor = 1.0 + (steps / 10.0)
+        self.settings["factor"] *= factor
+        if self.settings["factor"] < 0.3:
+            self.settings["factor"] = 0.3
+        elif self.settings["factor"] > 5:
+            self.settings["factor"] = 5
+            return
+        else:
+            self.scale(factor, factor)
 
 
 class PartObject:
@@ -317,7 +380,7 @@ def cli(**kwargs) -> None:
     }
 
     view = PartViewer(part, view_settings)
- 
+
     if not kwargs["nogui"]:
         view.initUI()
     if kwargs["dump"]:
