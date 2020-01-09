@@ -1,4 +1,11 @@
+# Dependencies
 openpyxl
 natsort
-PyQt5
+PySide2
+
+# Tools
 tox
+pylint
+pytest
+pre-commit
+black
