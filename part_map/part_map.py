@@ -9,7 +9,7 @@ import click
 
 from natsort import natsorted
 from openpyxl import load_workbook
-from PySide2.QtCore import QRectF, Qt
+from PySide2.QtCore import QCoreApplication, QRectF, Qt
 from PySide2.QtGui import QBrush, QColor, QImage, QKeySequence, QPainter, QPixmap
 from PySide2.QtWidgets import QAction, QApplication, QGraphicsScene, QGraphicsView, QMenu
 
@@ -31,7 +31,19 @@ class PartViewer(QGraphicsView):
         self.setWindowTitle(self.settings["title"])
 
         self.save_action = QAction(
-            "Save as Png", self, shortcut=QKeySequence.Save, statusTip="Save to .png", triggered=self.save
+            "Save as Png",
+            self,
+            shortcut=QKeySequence.Save,
+            statusTip="Save to .png",
+            triggered=self.save,
+        )
+
+        self.quit_action = QAction(
+            "Exit",
+            self,
+            shortcut="Ctrl+Q",
+            statusTip="Exit the Application",
+            triggered=QCoreApplication.instance().quit,
         )
 
         self.toggle_action = QAction(
@@ -109,15 +121,21 @@ class PartViewer(QGraphicsView):
                     fill = pin["color"]
                     brush = QBrush(QColor(fill))
                     paint.setBrush(brush)
-                    rect = QRectF(
-                        self.box_size * x_offset + int(self.box_size / 2),
-                        self.box_size * y_offset + self.box_size,
-                        self.box_size,
-                        self.box_size,
-                    )
                     if self.settings["circles"]:
+                        rect = QRectF(
+                            self.box_size * x_offset + int(self.box_size / 2),
+                            self.box_size * y_offset + self.box_size,
+                            self.box_size - self.settings["margin"],
+                            self.box_size - self.settings["margin"],
+                        )
                         paint.drawEllipse(rect)
                     else:
+                        rect = QRectF(
+                            self.box_size * x_offset + int(self.box_size / 2),
+                            self.box_size * y_offset + self.box_size,
+                            self.box_size,
+                            self.box_size,
+                        )
                         paint.drawRect(rect)
                     if not self.settings["labels"]:
                         paint.drawText(rect, Qt.AlignCenter, pin["name"][:6])
@@ -183,6 +201,7 @@ class PartViewer(QGraphicsView):
         menu.addSeparator()
         menu.addAction(self.toggle_action)
         menu.addAction(self.rotate_action)
+        menu.addAction(self.quit_action)
         menu.exec_(event.globalPos())
 
     def wheelEvent(self, event) -> None:  # pylint: disable=C0103
@@ -264,7 +283,7 @@ class PartObject:
 
     def add_pin(self, pin: str, net: str, color: str) -> None:
         """ Add a new pin to the part.
-        
+
         Args:
             pin: The Pin Number. (A12)
             net: The functional name of the net. (USB_P)
@@ -377,6 +396,7 @@ def cli(**kwargs) -> None:
         # "crosshair": kwargs["crosshair"],
         "labels": kwargs["no_labels"],
         "factor": 1.0,
+        "margin": 5,
     }
 
     view = PartViewer(part, view_settings)
