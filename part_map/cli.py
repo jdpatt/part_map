@@ -25,17 +25,16 @@ def cli(filename, **kwargs) -> None:
     anything that is on a grid.
     """
 
-    APP = QApplication([])
-    GUI = PartMap(filename, kwargs)
+    app = QApplication([])
+    gui = PartMap(filename, kwargs)
 
     if not kwargs["nogui"]:
-        GUI.show()
+        gui.show()
     if kwargs["dump"]:
-        GUI.part.dump_json()
+        gui.part.dump_json()
     if kwargs["save"]:
-        GUI.graphicsView.save()
+        gui.view.save()
     if kwargs["nogui"]:
-        APP.closeAllWindows()
+        app.closeAllWindows()
     else:
-        sys.exit(APP.exec_())
-    
+        sys.exit(app.exec_())

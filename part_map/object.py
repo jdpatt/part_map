@@ -1,5 +1,6 @@
 """Class representing the object being modeled."""
 import json
+import logging
 import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
@@ -13,8 +14,9 @@ class PartObject:
 
     def __init__(self, pins, filename):
         super(PartObject, self).__init__()
-        self.__pins = pins
-        self.__columns, self.__rows = self.sort_and_split_pin_list()
+        self.log = logging.getLogger("partmap.object")
+        self._pins = pins
+        self._columns, self.__rows = self.sort_and_split_pin_list()
         self.filename = Path(filename).stem
 
     @classmethod
@@ -70,17 +72,17 @@ class PartObject:
 
     def add_pin(self, pin: str, net: str, color: str) -> None:
         """ Add a new pin to the part.
-        
+
         Args:
             pin: The Pin Number. (A12)
             net: The functional name of the net. (USB_P)
             color: The color to fill with.
         """
-        self.__pins.update({pin: {"name": net, "color": color}})
+        self._pins.update({pin: {"name": net, "color": color}})
 
     def get_columns(self) -> List:
         """ Get the columns in a part. [1-n] """
-        return self.__columns
+        return self._columns
 
     def get_rows(self) -> List:
         """ Get the rows in a part.  [A - AZ] """
@@ -89,30 +91,30 @@ class PartObject:
     def get_pin(self, prefix: str, suffix: str) -> Union[str, None]:
         """ Get the name and color of a pin """
         pin = None
-        if prefix + suffix in self.__pins:
-            pin = self.__pins[prefix + suffix]
-        elif suffix + prefix in self.__pins:
-            pin = self.__pins[suffix + prefix]
+        if prefix + suffix in self._pins:
+            pin = self._pins[prefix + suffix]
+        elif suffix + prefix in self._pins:
+            pin = self._pins[suffix + prefix]
         return pin
 
     def get_pins(self):
         """ Return the pin names """
-        return self.__pins.keys()
+        return self._pins.keys()
 
     def get_number_of_pins(self):
         """ Return how many pins are in the part """
-        return len(self.__pins)
+        return len(self._pins)
 
     def get_net_names(self):
         """ Return the net names """
-        return self.__pins.values()["name"]
+        return self._pins.values()["name"]
 
     def dump_json(self):
         """ Dump the PartObject dictionary to a .json file """
-        save_file = PATH.joinpath(f"{self.filename}.json")
-        print(f"Saved to {save_file}")
+        save_file = f"{self.filename}.json"
+        self.log.info(f"Saved Json to {save_file}")
         with open(save_file, "w") as outfile:
-            json.dump(self.__pins, outfile, indent=4, separators=(",", ": "))
+            json.dump(self._pins, outfile, indent=4, separators=(",", ": "))
 
     def sort_and_split_pin_list(self) -> Tuple[List, List]:
         """ Take a list of pins and spilt by letter and number then sort """

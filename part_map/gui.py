@@ -8,6 +8,7 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
+from part_map.view import PartViewer
 from PySide2.QtCore import QCoreApplication, QMetaObject, QObject, QPoint, QRect, QSize, Qt, QUrl
 from PySide2.QtGui import (
     QBrush,
@@ -24,8 +25,6 @@ from PySide2.QtGui import (
 )
 from PySide2.QtWidgets import *
 
-from .view import PartViewer
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -41,6 +40,7 @@ class Ui_MainWindow(object):
         self.actionExit.setObjectName("actionExit")
         self.actionRotate = QAction(MainWindow)
         self.actionRotate.setObjectName("actionRotate")
+        self.actionRotate.setCheckable(False)
         self.actionToggle_Shape = QAction(MainWindow)
         self.actionToggle_Shape.setObjectName("actionToggle_Shape")
         self.centralwidget = QWidget(MainWindow)
@@ -48,10 +48,10 @@ class Ui_MainWindow(object):
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.graphicsView = PartViewer(self.centralwidget)
-        self.graphicsView.setObjectName("graphicsView")
+        self.view = PartViewer(self.centralwidget)
+        self.view.setObjectName("view")
 
-        self.gridLayout.addWidget(self.graphicsView, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.view, 0, 0, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
@@ -99,10 +99,14 @@ class Ui_MainWindow(object):
         self.actionExit.setText(QCoreApplication.translate("MainWindow", "Exit", None))
         self.actionExit.setShortcut(QCoreApplication.translate("MainWindow", "Ctrl+Q", None))
         self.actionRotate.setText(QCoreApplication.translate("MainWindow", "Rotate", None))
+        self.actionRotate.setShortcut(QCoreApplication.translate("MainWindow", "Ctrl+R", None))
         self.actionToggle_Shape.setText(
             QCoreApplication.translate("MainWindow", "Toggle Shape", None)
         )
-        self.menuFile.setTitle(QCoreApplication.translate("MainWindow", "File", None))
-        self.menuOptions.setTitle(QCoreApplication.translate("MainWindow", "Options", None))
+        self.actionToggle_Shape.setShortcut(
+            QCoreApplication.translate("MainWindow", "Ctrl+T", None)
+        )
+        self.menuFile.setTitle(QCoreApplication.translate("MainWindow", "&File", None))
+        self.menuOptions.setTitle(QCoreApplication.translate("MainWindow", "&Options", None))
 
     # retranslateUi

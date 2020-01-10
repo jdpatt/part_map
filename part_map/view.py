@@ -1,18 +1,18 @@
 """ Visual pin out of a BGA or connector """
-import re
+import logging
 from pathlib import Path
 from typing import List
 
 from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtCore import QRectF, Qt
-from PySide2.QtGui import QBrush, QColor, QImage, QKeySequence, QPainter, QPixmap
 
 
 class PartViewer(QtWidgets.QGraphicsView):
     """ Create a render of the part and load it into a QWidget """
 
+    # pylint: disable=R0902
     def __init__(self, parent=None):
         super(PartViewer, self).__init__(parent)
+        self.log = logging.getLogger("partmap.view")
         self.parent = parent
         self._settings = None
         self._part = None
@@ -22,19 +22,23 @@ class PartViewer(QtWidgets.QGraphicsView):
 
     @property
     def settings(self):
+        """Return the settings dictionary."""
         return self._settings
 
     @settings.setter
     def settings(self, settings):
+        """Set the settings dictionary and update the view."""
         self._settings = settings
         self.initUI()
 
     @property
     def part(self):
+        """Return the part object."""
         return self._part
 
     @part.setter
     def part(self, part):
+        """Set the part object."""
         self._part = part
 
     def initUI(self) -> None:  # pylint: disable=C0103
@@ -47,7 +51,8 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.setResizeAnchor(self.AnchorUnderMouse)
         self.setDragMode(self.ScrollHandDrag)
         self.fitInView(
-            QRectF(0, 0, self.settings["width"], self.settings["height"]), Qt.KeepAspectRatio
+            QtCore.QRectF(0, 0, self.settings["width"], self.settings["height"]),
+            QtCore.Qt.KeepAspectRatio,
         )
 
     def generate_render(self) -> None:
@@ -55,17 +60,17 @@ class PartViewer(QtWidgets.QGraphicsView):
         part_cols = self.part.get_columns()
         part_rows = self.part.get_rows()
         self.scale_box_size(part_cols, part_rows)
-        self.image = QImage(
+        self.image = QtGui.QImage(
             self.settings["image_width"],
             self.settings["image_height"] + (self.box_size / 2),
-            QImage.Format_RGB32,
+            QtGui.QImage.Format_RGB32,
         )
-        self.image.fill(QColor("#ffffff"))  # Background Color
-        paint = QPainter(self.image)
+        self.image.fill(QtGui.QColor("#ffffff"))  # Background Color
+        paint = QtGui.QPainter(self.image)
         paint.setRenderHints(
-            QPainter.HighQualityAntialiasing
-            | QPainter.SmoothPixmapTransform
-            | QPainter.TextAntialiasing,
+            QtGui.QPainter.HighQualityAntialiasing
+            | QtGui.QPainter.SmoothPixmapTransform
+            | QtGui.QPainter.TextAntialiasing,
             True,
         )
         if self.settings["rotate"]:
@@ -73,13 +78,13 @@ class PartViewer(QtWidgets.QGraphicsView):
             part_cols, part_rows = part_rows, part_cols
         for hdr_offset, column in enumerate(part_cols):
             paint.drawText(
-                QRectF(
+                QtCore.QRectF(
                     hdr_offset * self.box_size + int(self.box_size / 2),
                     0,
                     self.box_size,
                     self.box_size,
                 ),
-                Qt.AlignCenter,
+                QtCore.Qt.AlignCenter,
                 column,
             )
         for y_offset, row in enumerate(part_rows):
@@ -87,10 +92,10 @@ class PartViewer(QtWidgets.QGraphicsView):
                 pin = self.part.get_pin(str(row), str(column))
                 if pin and pin["name"] is not None:
                     fill = pin["color"]
-                    brush = QBrush(QColor(fill))
+                    brush = QtGui.QBrush(QtGui.QColor(fill))
                     paint.setBrush(brush)
                     if self.settings["circles"]:
-                        rect = QRectF(
+                        rect = QtCore.QRectF(
                             self.box_size * x_offset + int(self.box_size / 2),
                             self.box_size * y_offset + self.box_size,
                             self.box_size - self.settings["margin"],
@@ -98,7 +103,7 @@ class PartViewer(QtWidgets.QGraphicsView):
                         )
                         paint.drawEllipse(rect)
                     else:
-                        rect = QRectF(
+                        rect = QtCore.QRectF(
                             self.box_size * x_offset + int(self.box_size / 2),
                             self.box_size * y_offset + self.box_size,
                             self.box_size,
@@ -106,15 +111,15 @@ class PartViewer(QtWidgets.QGraphicsView):
                         )
                         paint.drawRect(rect)
                     if not self.settings["labels"]:
-                        paint.drawText(rect, Qt.AlignCenter, pin["name"][:6])
+                        paint.drawText(rect, QtCore.Qt.AlignCenter, pin["name"][:6])
             paint.drawText(
-                QRectF(
+                QtCore.QRectF(
                     self.box_size * len(part_cols) + int(self.box_size / 2),
                     self.box_size * y_offset + self.box_size,
                     self.box_size,
                     self.box_size,
                 ),
-                Qt.AlignCenter,
+                QtCore.Qt.AlignCenter,
                 row,
             )
         paint.end()
@@ -122,7 +127,7 @@ class PartViewer(QtWidgets.QGraphicsView):
     def save(self) -> None:
         """ Save the Pixmap as a .png """
         save_file = Path(f'{self.settings["title"]}.png')
-        print(f"Saved to {save_file}")
+        self.log.info(f"Saved Image to {save_file}")
         self.image.save(str(save_file))
 
     def scale_box_size(self, columns: List, rows: List) -> None:
@@ -140,7 +145,7 @@ class PartViewer(QtWidgets.QGraphicsView):
     def redraw(self):
         """Update the current pixmap."""
         self.scene.clear()
-        pixmap = QPixmap.fromImage(self.image)
+        pixmap = QtGui.QPixmap.fromImage(self.image)
         self.scene.addPixmap(pixmap)
 
     def toggle_style(self):
