@@ -21,4 +21,4 @@ jobs:
         pip install tox
     - name: Tox
       run: |
-        tox -p auto -e py37,pep8 -q
+        tox -p auto -q
