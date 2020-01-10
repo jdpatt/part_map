@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def readme():
@@ -8,15 +8,16 @@ def readme():
 
 setup(
     name="part_map",
-    version="1.2.4",
+    version="2.0.0",
     description="Part Visualizer",
     long_description=readme(),
     url="https://github.com/jdpatt/part_map",
     author="David Patterson",
     license="MIT",
     python_requires=">=3.7",
-    packages=["part_map"],
+    packages=find_packages(include=["part_map", "part_map.*"]),
+    include_package_data=True,
     install_requires=["openpyxl", "Click", "natsort", "PySide2"],
-    entry_points={"console_scripts": ["part-map = part_map.part_map:cli"]},
+    entry_points={"console_scripts": ["part-map = part_map.cli:cli"]},
     zip_safe=False,
 )

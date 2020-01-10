@@ -1,0 +1,178 @@
+""" Visual pin out of a BGA or connector """
+import re
+from pathlib import Path
+from typing import List
+
+from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2.QtCore import QRectF, Qt
+from PySide2.QtGui import QBrush, QColor, QImage, QKeySequence, QPainter, QPixmap
+
+
+class PartViewer(QtWidgets.QGraphicsView):
+    """ Create a render of the part and load it into a QWidget """
+
+    def __init__(self, parent=None):
+        super(PartViewer, self).__init__(parent)
+        self.parent = parent
+        self._settings = None
+        self._part = None
+        self.image = None
+        self.box_size = 50
+        self.total_steps = 0
+
+    @property
+    def settings(self):
+        return self._settings
+
+    @settings.setter
+    def settings(self, settings):
+        self._settings = settings
+        self.initUI()
+
+    @property
+    def part(self):
+        return self._part
+
+    @part.setter
+    def part(self, part):
+        self._part = part
+
+    def initUI(self) -> None:  # pylint: disable=C0103
+        """ Init all the UI elements """
+        self.resize(self.settings["width"], self.settings["height"])
+        self.scene = QtWidgets.QGraphicsScene()
+        self.redraw()
+        self.setScene(self.scene)
+        self.setTransformationAnchor(self.AnchorUnderMouse)
+        self.setResizeAnchor(self.AnchorUnderMouse)
+        self.setDragMode(self.ScrollHandDrag)
+        self.fitInView(
+            QRectF(0, 0, self.settings["width"], self.settings["height"]), Qt.KeepAspectRatio
+        )
+
+    def generate_render(self) -> None:
+        """ Generate the part """
+        part_cols = self.part.get_columns()
+        part_rows = self.part.get_rows()
+        self.scale_box_size(part_cols, part_rows)
+        self.image = QImage(
+            self.settings["image_width"],
+            self.settings["image_height"] + (self.box_size / 2),
+            QImage.Format_RGB32,
+        )
+        self.image.fill(QColor("#ffffff"))  # Background Color
+        paint = QPainter(self.image)
+        paint.setRenderHints(
+            QPainter.HighQualityAntialiasing
+            | QPainter.SmoothPixmapTransform
+            | QPainter.TextAntialiasing,
+            True,
+        )
+        if self.settings["rotate"]:
+            part_cols.reverse()
+            part_cols, part_rows = part_rows, part_cols
+        for hdr_offset, column in enumerate(part_cols):
+            paint.drawText(
+                QRectF(
+                    hdr_offset * self.box_size + int(self.box_size / 2),
+                    0,
+                    self.box_size,
+                    self.box_size,
+                ),
+                Qt.AlignCenter,
+                column,
+            )
+        for y_offset, row in enumerate(part_rows):
+            for x_offset, column in enumerate(part_cols):
+                pin = self.part.get_pin(str(row), str(column))
+                if pin and pin["name"] is not None:
+                    fill = pin["color"]
+                    brush = QBrush(QColor(fill))
+                    paint.setBrush(brush)
+                    if self.settings["circles"]:
+                        rect = QRectF(
+                            self.box_size * x_offset + int(self.box_size / 2),
+                            self.box_size * y_offset + self.box_size,
+                            self.box_size - self.settings["margin"],
+                            self.box_size - self.settings["margin"],
+                        )
+                        paint.drawEllipse(rect)
+                    else:
+                        rect = QRectF(
+                            self.box_size * x_offset + int(self.box_size / 2),
+                            self.box_size * y_offset + self.box_size,
+                            self.box_size,
+                            self.box_size,
+                        )
+                        paint.drawRect(rect)
+                    if not self.settings["labels"]:
+                        paint.drawText(rect, Qt.AlignCenter, pin["name"][:6])
+            paint.drawText(
+                QRectF(
+                    self.box_size * len(part_cols) + int(self.box_size / 2),
+                    self.box_size * y_offset + self.box_size,
+                    self.box_size,
+                    self.box_size,
+                ),
+                Qt.AlignCenter,
+                row,
+            )
+        paint.end()
+
+    def save(self) -> None:
+        """ Save the Pixmap as a .png """
+        save_file = Path(f'{self.settings["title"]}.png')
+        print(f"Saved to {save_file}")
+        self.image.save(str(save_file))
+
+    def scale_box_size(self, columns: List, rows: List) -> None:
+        """ If the part width is less than 1536 (2K width) scale up
+        """
+        part_width = (len(columns) + 1) * self.box_size
+        if part_width < 1536.0:
+            window_scale = 1536.0 / part_width
+        else:
+            window_scale = 1
+        self.box_size = int(self.box_size * window_scale)
+        self.settings["image_width"] = (len(columns) + 1) * self.box_size + self.box_size
+        self.settings["image_height"] = (len(rows) + 1) * self.box_size + self.box_size
+
+    def redraw(self):
+        """Update the current pixmap."""
+        self.scene.clear()
+        pixmap = QPixmap.fromImage(self.image)
+        self.scene.addPixmap(pixmap)
+
+    def toggle_style(self):
+        """Change between circles or squares."""
+        if self.settings["circles"]:  # If true, set to false for rectangles.
+            self.settings["circles"] = False
+        else:
+            self.settings["circles"] = True
+        self.generate_render()
+        self.redraw()
+
+    def rotate_drawing(self):
+        """Rotate the diagram."""
+        if self.settings["rotate"]:
+            self.settings["rotate"] = False
+        else:
+            self.settings["rotate"] = True
+        self.generate_render()
+        self.redraw()
+
+    def wheelEvent(self, event) -> None:  # pylint: disable=C0103
+        """ If the wheel is scrolled; figure out how much to zoom """
+        steps = event.angleDelta().y() / 120
+        self.total_steps += steps
+        if (self.total_steps * steps) < 0:
+            self.total_steps = steps  # Zoom out by steps
+        factor = 1.0 + (steps / 10.0)
+        self.settings["factor"] *= factor
+        if self.settings["factor"] < 0.3:
+            self.settings["factor"] = 0.3
+        elif self.settings["factor"] > 5:
+            self.settings["factor"] = 5
+            return
+        else:
+            self.scale(factor, factor)
