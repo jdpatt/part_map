@@ -124,7 +124,6 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.scene.clear()
         pixmap = QtGui.QPixmap.fromImage(self.image)
         self.scene.addPixmap(pixmap)
-        self.scene.update()
 
     def toggle_style(self):
         """Change between circles or squares."""

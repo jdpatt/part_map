@@ -61,8 +61,3 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         """Log any logger messages via the slot/signal mechanism so that its thread safe."""
         del level  # Unused
         self.statusbar.showMessage(msg, timeout=5000)  # Miliseconds
-
-    def resizeEvent(self, event):
-        """Override the resize event to allow the pixmap to rescale."""
-        self.view.redraw()
-        return super().resizeEvent(event)
