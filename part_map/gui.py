@@ -43,6 +43,8 @@ class Ui_MainWindow(object):
         self.actionRotate.setCheckable(False)
         self.actionToggle_Shape = QAction(MainWindow)
         self.actionToggle_Shape.setObjectName("actionToggle_Shape")
+        self.actionToggle_Labels = QAction(MainWindow)
+        self.actionToggle_Labels.setObjectName("actionToggle_Labels")
         self.actionOpen = QAction(MainWindow)
         self.actionOpen.setObjectName("actionOpen")
         self.actionZoom_In = QAction(MainWindow)
@@ -92,6 +94,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionExit)
         self.menuOptions.addAction(self.actionRotate)
         self.menuOptions.addAction(self.actionToggle_Shape)
+        self.menuOptions.addAction(self.actionToggle_Labels)
         self.menuView.addAction(self.actionZoom_In)
         self.menuView.addAction(self.actionZoom_Out)
         self.menuView.addAction(self.actionReset_Zoom)
@@ -126,6 +129,12 @@ class Ui_MainWindow(object):
         )
         self.actionToggle_Shape.setShortcut(
             QCoreApplication.translate("MainWindow", "Ctrl+T", None)
+        )
+        self.actionToggle_Labels.setText(
+            QCoreApplication.translate("MainWindow", "Toggle Labels", None)
+        )
+        self.actionToggle_Labels.setShortcut(
+            QCoreApplication.translate("MainWindow", "Ctrl+L", None)
         )
         self.actionOpen.setText(QCoreApplication.translate("MainWindow", "Open", None))
         self.actionOpen.setShortcut(QCoreApplication.translate("MainWindow", "Ctrl+O", None))

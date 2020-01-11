@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import List
 
-from part_map.pins import RoundPin, SquarePin
+from part_map.pins import Pin
 from PySide2 import QtCore, QtGui, QtWidgets
 
 
@@ -51,42 +51,33 @@ class PartViewer(QtWidgets.QGraphicsView):
         for hdr_offset, column in enumerate(part_cols):
             text = self.scene.addText(column)
             text.setDefaultTextColor(QtCore.Qt.black)
-            text.setPos(hdr_offset * self.box_size + int(self.box_size / 2), 0)
+            text.setPos(hdr_offset * self.box_size + int(self.box_size), int(self.box_size / 2))
 
         # Draw the Part
         for y_offset, row in enumerate(part_rows):
             for x_offset, column in enumerate(part_cols):
                 pin = self.part.get_pin(str(row), str(column))
                 if pin:
-                    if self.settings["circles"]:
-                        pin = RoundPin(
-                            pin,
-                            QtCore.QRectF(
-                                self.box_size * x_offset + int(self.box_size / 2),
-                                self.box_size * y_offset + self.box_size,
-                                self.box_size - self.settings["margin"],
-                                self.box_size - self.settings["margin"],
-                            ),
-                            show_label=self.settings["labels"],
-                        )
-                    else:
-                        pin = SquarePin(
-                            pin,
-                            QtCore.QRectF(
-                                self.box_size * x_offset + int(self.box_size / 2),
-                                self.box_size * y_offset + self.box_size,
-                                self.box_size,
-                                self.box_size,
-                            ),
-                            show_label=self.settings["labels"],
-                        )
-                    self.scene.addItem(pin)
-                    pin.clicked.connect(self.parentWidget().parentWidget().set_properties_widget)
+                    pin_graphic = Pin(
+                        pin,
+                        QtCore.QRectF(
+                            self.box_size * x_offset + int(self.box_size / 2),
+                            self.box_size * y_offset + self.box_size,
+                            self.box_size,
+                            self.box_size,
+                        ),
+                        show_label=self.settings["labels"],
+                        view=self,
+                    )
+                    self.scene.addItem(pin_graphic)
+                    pin_graphic.clicked.connect(
+                        self.parentWidget().parentWidget().set_properties_widget
+                    )
                 text = self.scene.addText(row)
                 text.setDefaultTextColor(QtCore.Qt.black)
                 text.setPos(
-                    self.box_size * len(part_cols) + int(self.box_size / 2),
-                    self.box_size * y_offset + self.box_size,
+                    self.box_size * len(part_cols) + int(self.box_size),
+                    self.box_size * y_offset + self.box_size + int(self.box_size / 2),
                 )
         self.scene.update()
 
@@ -136,6 +127,14 @@ class PartViewer(QtWidgets.QGraphicsView):
             self.settings["circles"] = False
         else:
             self.settings["circles"] = True
+        self.generate_render()
+
+    def toggle_labels(self):
+        """Change between labels on or off."""
+        if self.settings["labels"]:
+            self.settings["labels"] = False
+        else:
+            self.settings["labels"] = True
         self.generate_render()
 
     def rotate_drawing(self):

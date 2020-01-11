@@ -55,6 +55,7 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionSave_as_Json.triggered.connect(self.save_json)
         self.actionRotate.triggered.connect(self.rotate)
         self.actionToggle_Shape.triggered.connect(self.change_shape)
+        self.actionToggle_Labels.triggered.connect(self.toggle_labels)
         self.actionZoom_In.triggered.connect(self.zoom_in)
         self.actionZoom_Out.triggered.connect(self.zoom_out)
         self.actionReset_Zoom.triggered.connect(self.reset_zoom)
@@ -86,6 +87,7 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         elif filename.suffix in [".net", ".txt"]:
             self.part = PartObject.from_telesis(filename, self.settings["refdes"])
 
+        self.settings.update({"title": filename.stem})
         self.view.setup(self.part, self.settings)
 
     def save_image(self):
@@ -113,6 +115,13 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         """Change from square/circle to the other."""
         if self.view:
             self.view.toggle_style()
+        else:
+            self.log.error("View doesn't exist")
+
+    def toggle_labels(self):
+        """Change from square/circle to the other."""
+        if self.view:
+            self.view.toggle_labels()
         else:
             self.log.error("View doesn't exist")
 

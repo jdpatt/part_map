@@ -3,17 +3,18 @@ from part_map.pins.widget import PinWidget
 from PySide2 import QtCore, QtGui, QtWidgets
 
 
-class SquarePin(QtCore.QObject, QtWidgets.QGraphicsRectItem):
+class Pin(QtCore.QObject, QtWidgets.QGraphicsItem):
     """The graphical view of a square pin."""
 
     clicked = QtCore.Signal(object)
 
-    def __init__(self, pin, rect, show_label=True, parent=None):
+    def __init__(self, pin, rect, show_label=True, view=None, parent=None):
         QtCore.QObject.__init__(self, parent)
-        QtWidgets.QGraphicsRectItem.__init__(self, rect, parent)
+        QtWidgets.QGraphicsItem.__init__(self, parent)
         self.setFlags(self.ItemIsSelectable)
         self._widget = None
 
+        self.view = view
         self.rect = rect
 
         self.pin = pin
@@ -42,9 +43,26 @@ class SquarePin(QtCore.QObject, QtWidgets.QGraphicsRectItem):
 
     def paint(self, painter, option, widget):
         """If the pin is selected alter the pen before allowing the base class to draw the rect."""
-        self.setBrush(QtGui.QColor(self.pin["color"]))
+        painter.save()
         if self.isSelected():
-            self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 6))
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 6))
         else:
-            self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
-        super().paint(painter, option, widget)
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
+        painter.setBrush(QtGui.QColor(self.pin["color"]))
+        if self.view.settings["circles"]:
+            painter.drawEllipse(
+                self.rect.adjusted(
+                    0, 0, -self.view.settings["margin"], -self.view.settings["margin"]
+                )
+            )
+        else:
+            painter.drawRect(self.rect)
+
+        painter.setFont(QtGui.QFont("Times", 12, QtGui.QFont.Bold))
+        if self.view.settings["labels"]:
+            if len(self.pin["name"]) > 7:
+                name = self.pin["name"][:7]
+            else:
+                name = self.pin["name"]
+            painter.drawText(self.rect, QtCore.Qt.AlignCenter | QtCore.Qt.AlignHCenter, name)
+        painter.restore()
