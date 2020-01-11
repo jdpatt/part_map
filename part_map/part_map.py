@@ -7,18 +7,11 @@ from .gui import Ui_MainWindow
 from .logger import ThreadLogHandler, setup_logger
 from .object import PartObject
 
-SETTINGS = {
-    "refdes": "",
-    "rotate": True,
-    "circles": False,
-    "labels": True,
-}
-
 
 class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
     """Main Part Map Window."""
 
-    def __init__(self, filename=None, settings=SETTINGS):
+    def __init__(self, filename=None, settings=None):
         QtWidgets.QMainWindow.__init__(self)
         self.log = setup_logger("partmap")
 
@@ -26,7 +19,13 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         self.view = None
 
         screen_resolution = QtWidgets.QApplication.desktop().screenGeometry()
-
+        if not settings:
+            settings = {
+                "refdes": "",
+                "rotate": True,
+                "circles": False,
+                "labels": True,
+            }
         settings.update(
             {
                 "width": screen_resolution.width(),

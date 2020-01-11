@@ -43,6 +43,7 @@ class Pin(QtCore.QObject, QtWidgets.QGraphicsItem):
 
     def paint(self, painter, option, widget):
         """If the pin is selected alter the pen before allowing the base class to draw the rect."""
+        del option, widget  # Unused
         painter.save()
         if self.isSelected():
             painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 6))
