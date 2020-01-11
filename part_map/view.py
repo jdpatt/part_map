@@ -29,6 +29,8 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.setTransformationAnchor(self.AnchorUnderMouse)
         self.setResizeAnchor(self.AnchorUnderMouse)
         self.setDragMode(self.ScrollHandDrag)
+        self.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        self.setViewportUpdateMode(QtWidgets.QGraphicsView.FullViewportUpdate)
 
     def setup(self, part, settings):
         """Return the settings dictionary."""
@@ -37,8 +39,6 @@ class PartViewer(QtWidgets.QGraphicsView):
         if self.settings["rotate"]:
             self.rotate_drawing()
         self.scale_box_size(self.part.columns, self.part.rows)
-        # This puts the scenes origin in the upper left corner.
-        self.setSceneRect(0, 0, self.settings["image_width"], self.settings["image_height"])
         self.generate_render()
 
     def generate_render(self) -> None:
@@ -110,8 +110,7 @@ class PartViewer(QtWidgets.QGraphicsView):
             self.log.error("Nothing to create Image from.")
 
     def scale_box_size(self, columns: List, rows: List) -> None:
-        """ If the part width is less than 1536 (2K width) scale up
-        """
+        """If the part width is less than 1536 (2K width) scale up."""
         part_width = (len(columns) + 1) * self.box_size
         if part_width < 1536.0:
             window_scale = 1536.0 / part_width
@@ -120,6 +119,8 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.box_size = int(self.box_size * window_scale)
         self.settings["image_width"] = (len(columns) + 1) * self.box_size + self.box_size
         self.settings["image_height"] = (len(rows) + 1) * self.box_size + self.box_size
+        self.setSceneRect(0, 0, self.settings["image_width"], self.settings["image_height"])
+        self.fitInView(self.scene.sceneRect())
 
     def toggle_style(self):
         """Change between circles or squares."""
@@ -127,7 +128,7 @@ class PartViewer(QtWidgets.QGraphicsView):
             self.settings["circles"] = False
         else:
             self.settings["circles"] = True
-        self.generate_render()
+        self.scene.update()
 
     def toggle_labels(self):
         """Change between labels on or off."""
@@ -135,7 +136,7 @@ class PartViewer(QtWidgets.QGraphicsView):
             self.settings["labels"] = False
         else:
             self.settings["labels"] = True
-        self.generate_render()
+        self.scene.update()
 
     def rotate_drawing(self):
         """Rotate the diagram."""
@@ -171,7 +172,7 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.resetTransform()
 
     def set_zoom(self, value=0.0):
-        """Zoom the Schematic View in."""
+        """Zoom the View."""
         if value == 0:
             self.reset_zoom()
 

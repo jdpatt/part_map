@@ -8,7 +8,7 @@ def readme():
 
 setup(
     name="part_map",
-    version="2.0.0",
+    version="2.1.0",
     description="Part Visualizer",
     long_description=readme(),
     url="https://github.com/jdpatt/part_map",
