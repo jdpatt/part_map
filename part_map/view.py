@@ -34,6 +34,7 @@ class PartViewer(QtWidgets.QGraphicsView):
         if self.settings["rotate"]:
             self.rotate_drawing()
         self.generate_render()
+        self.redraw()
 
     def generate_render(self) -> None:
         """ Generate the part """

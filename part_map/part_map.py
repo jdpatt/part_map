@@ -14,6 +14,7 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, filename, kwargs):
         QtWidgets.QMainWindow.__init__(self)
         self.log = setup_logger("partmap")
+
         self.setupUi(self)
         self.menubar.setNativeMenuBar(False)
 
@@ -43,7 +44,6 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
             "margin": 5,
         }
         self.log.debug(f"Settings: {view_settings}")
-        self.setupUi(self)
 
         self.view.setup(self.part, view_settings)
 
