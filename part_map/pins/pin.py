@@ -59,7 +59,7 @@ class Pin(QtCore.QObject, QtWidgets.QGraphicsItem):
         else:
             painter.drawRect(self.rect)
 
-        painter.setFont(QtGui.QFont("Times", 12, QtGui.QFont.Bold))
+        painter.setFont(QtGui.QFont("Times", 12))
         if self.view.settings["labels"]:
             if len(self.pin["name"]) > 7:
                 name = self.pin["name"][:7]
