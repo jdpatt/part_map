@@ -14,7 +14,7 @@ class SquarePin(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         self.setFlags(self.ItemIsSelectable)
         self._widget = None
 
-        self.size = rect.width()
+        self.rect = rect
 
         self.pin = pin
         self.show_label = show_label
@@ -25,6 +25,14 @@ class SquarePin(QtCore.QObject, QtWidgets.QGraphicsRectItem):
         if not self._widget:
             self._widget = PinWidget(self)
         return self._widget
+
+    def boundingRect(self):
+        """Return the outer bounds of the item as a rectangle.
+
+        All painting must be restricted inside an item's bounding rect. QGraphicsView uses this to
+        determine whether the item requires redrawing.
+        """
+        return self.rect
 
     def mousePressEvent(self, event):
         """Change the pin color when the user clicks the pin."""

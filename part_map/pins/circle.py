@@ -14,7 +14,7 @@ class RoundPin(QtCore.QObject, QtWidgets.QGraphicsEllipseItem):
         self.setFlags(self.ItemIsSelectable)
         self._widget = None
 
-        self.size = rect.width()
+        self.rect = rect
 
         self.pin = pin
         self.show_label = show_label
@@ -25,6 +25,14 @@ class RoundPin(QtCore.QObject, QtWidgets.QGraphicsEllipseItem):
         if not self._widget:
             self._widget = PinWidget(self)
         return self._widget
+
+    def boundingRect(self):
+        """Return the outer bounds of the item as a rectangle.
+
+        All painting must be restricted inside an item's bounding rect. QGraphicsView uses this to
+        determine whether the item requires redrawing.
+        """
+        return self.rect
 
     def mousePressEvent(self, event):
         """Change the pin color when the user clicks the pin."""
@@ -39,4 +47,9 @@ class RoundPin(QtCore.QObject, QtWidgets.QGraphicsEllipseItem):
             self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 6))
         else:
             self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
+        painter.setPen(QtGui.QColor(0, 0, 0))
+        painter.setFont(QtGui.QFont("Times", 12, QtGui.QFont.Bold))
+        painter.drawText(
+            self.rect, QtCore.Qt.AlignCenter | QtCore.Qt.AlignHCenter, self.pin["name"]
+        )
         super().paint(painter, option, widget)
