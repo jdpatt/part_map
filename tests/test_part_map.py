@@ -18,21 +18,21 @@ def test_load_from_json():
     assert obj.get_number_of_pins() == 58
 
 
-def test_get_columns():
+def test_columns():
     obj = PartObject.from_json(
         Path(__file__).parent.parent.joinpath("examples", "connector_example.json")
     )
-    assert obj.get_columns() == [str(x) for x in range(1, 17)]
+    assert obj.columns == [str(x) for x in range(1, 17)]
 
 
-def test_get_rows():
+def test_rows():
     obj = PartObject.from_json(
         Path(__file__).parent.parent.joinpath("examples", "connector_example.json")
     )
-    assert obj.get_rows() == ["A", "B", "C", "D"]
+    assert obj.rows == ["A", "B", "C", "D"]
 
 
 def test_add_pin():
     obj = PartObject({}, "TestObject")
     obj.add_pin("A1", "TEST", "0xFFFFFF")
-    assert list(obj.get_pins()) == ["A1"]
+    assert list(obj.pins) == ["A1"]

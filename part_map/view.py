@@ -20,6 +20,11 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.box_size = 50
         self.total_steps = 0
 
+        self.setScene(QtWidgets.QGraphicsScene())
+        self.setTransformationAnchor(self.AnchorUnderMouse)
+        self.setResizeAnchor(self.AnchorUnderMouse)
+        self.setDragMode(self.ScrollHandDrag)
+
     @property
     def settings(self):
         """Return the settings dictionary."""
@@ -29,7 +34,8 @@ class PartViewer(QtWidgets.QGraphicsView):
     def settings(self, settings):
         """Set the settings dictionary and update the view."""
         self._settings = settings
-        self.initUI()
+        if self._settings["rotate"]:
+            self.rotate_drawing()
 
     @property
     def part(self):
@@ -41,24 +47,10 @@ class PartViewer(QtWidgets.QGraphicsView):
         """Set the part object."""
         self._part = part
 
-    def initUI(self) -> None:  # pylint: disable=C0103
-        """ Init all the UI elements """
-        self.resize(self.settings["width"], self.settings["height"])
-        self.scene = QtWidgets.QGraphicsScene()
-        self.redraw()
-        self.setScene(self.scene)
-        self.setTransformationAnchor(self.AnchorUnderMouse)
-        self.setResizeAnchor(self.AnchorUnderMouse)
-        self.setDragMode(self.ScrollHandDrag)
-        self.fitInView(
-            QtCore.QRectF(0, 0, self.settings["width"], self.settings["height"]),
-            QtCore.Qt.KeepAspectRatio,
-        )
-
     def generate_render(self) -> None:
         """ Generate the part """
-        part_cols = self.part.get_columns()
-        part_rows = self.part.get_rows()
+        part_cols = self.part.columns
+        part_rows = self.part.rows
         self.scale_box_size(part_cols, part_rows)
         self.image = QtGui.QImage(
             self.settings["image_width"],
@@ -73,9 +65,6 @@ class PartViewer(QtWidgets.QGraphicsView):
             | QtGui.QPainter.TextAntialiasing,
             True,
         )
-        if self.settings["rotate"]:
-            part_cols.reverse()
-            part_cols, part_rows = part_rows, part_cols
         for hdr_offset, column in enumerate(part_cols):
             paint.drawText(
                 QtCore.QRectF(
@@ -123,11 +112,12 @@ class PartViewer(QtWidgets.QGraphicsView):
                 row,
             )
         paint.end()
+        self.redraw()
 
     def save(self) -> None:
         """ Save the Pixmap as a .png """
         save_file = Path(f'{self.settings["title"]}.png')
-        self.log.info(f"Saved Image to {save_file}")
+        self.log.info(f"Saved image to {save_file}")
         self.image.save(str(save_file))
 
     def scale_box_size(self, columns: List, rows: List) -> None:
@@ -144,9 +134,10 @@ class PartViewer(QtWidgets.QGraphicsView):
 
     def redraw(self):
         """Update the current pixmap."""
-        self.scene.clear()
         pixmap = QtGui.QPixmap.fromImage(self.image)
-        self.scene.addPixmap(pixmap)
+        pixmap.scaled(self.settings["width"], self.settings["height"], QtCore.Qt.KeepAspectRatio)
+        pixmap_item = self.scene().addPixmap(pixmap)
+        self.centerOn(pixmap_item)
 
     def toggle_style(self):
         """Change between circles or squares."""
@@ -155,16 +146,15 @@ class PartViewer(QtWidgets.QGraphicsView):
         else:
             self.settings["circles"] = True
         self.generate_render()
-        self.redraw()
 
     def rotate_drawing(self):
         """Rotate the diagram."""
-        if self.settings["rotate"]:
-            self.settings["rotate"] = False
-        else:
-            self.settings["rotate"] = True
+        part_cols = self.part.columns
+        part_rows = self.part.rows
+        part_cols.reverse()
+        self.part.columns = part_rows
+        self.part.rows = part_cols
         self.generate_render()
-        self.redraw()
 
     def wheelEvent(self, event) -> None:  # pylint: disable=C0103
         """ If the wheel is scrolled; figure out how much to zoom """

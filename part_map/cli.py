@@ -4,7 +4,7 @@ import sys
 import click
 
 from part_map.part_map import PartMap
-from PySide2.QtWidgets import QApplication
+from PySide2 import QtWidgets
 
 
 @click.group(
@@ -25,7 +25,7 @@ def cli(filename, **kwargs) -> None:
     anything that is on a grid.
     """
 
-    app = QApplication([])
+    app = QtWidgets.QApplication([])
     gui = PartMap(filename, kwargs)
 
     if not kwargs["nogui"]:

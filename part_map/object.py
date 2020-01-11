@@ -16,7 +16,7 @@ class PartObject:
         super(PartObject, self).__init__()
         self.log = logging.getLogger("partmap.object")
         self._pins = pins
-        self._columns, self.__rows = self.sort_and_split_pin_list()
+        self._columns, self._rows = self.sort_and_split_pin_list()
         self.filename = Path(filename).stem
 
     @classmethod
@@ -80,13 +80,25 @@ class PartObject:
         """
         self._pins.update({pin: {"name": net, "color": color}})
 
-    def get_columns(self) -> List:
+    @property
+    def columns(self) -> List:
         """ Get the columns in a part. [1-n] """
         return self._columns
 
-    def get_rows(self) -> List:
+    @columns.setter
+    def columns(self, new_columns):
+        """Update the columns."""
+        self._columns = new_columns
+
+    @property
+    def rows(self) -> List:
         """ Get the rows in a part.  [A - AZ] """
-        return self.__rows
+        return self._rows
+
+    @rows.setter
+    def rows(self, new_rows):
+        """Update the rows."""
+        self._rows = new_rows
 
     def get_pin(self, prefix: str, suffix: str) -> Union[str, None]:
         """ Get the name and color of a pin """
@@ -97,7 +109,8 @@ class PartObject:
             pin = self._pins[suffix + prefix]
         return pin
 
-    def get_pins(self):
+    @property
+    def pins(self):
         """ Return the pin names """
         return self._pins.keys()
 
@@ -112,15 +125,15 @@ class PartObject:
     def dump_json(self):
         """ Dump the PartObject dictionary to a .json file """
         save_file = f"{self.filename}.json"
-        self.log.info(f"Saved Json to {save_file}")
+        self.log.info(f"Saved as json to {save_file}")
         with open(save_file, "w") as outfile:
-            json.dump(self._pins, outfile, indent=4, separators=(",", ": "))
+            json.dump(self._pins, outfile, sort_keys=True, indent=4, separators=(",", ": "))
 
     def sort_and_split_pin_list(self) -> Tuple[List, List]:
         """ Take a list of pins and spilt by letter and number then sort """
         r_list: List = list()
         c_list = list()
-        for pin in self.get_pins():
+        for pin in self.pins:
             split_pin = re.split(r"(\d+)", pin)
             if split_pin[0] not in r_list:
                 r_list.append(split_pin[0])
