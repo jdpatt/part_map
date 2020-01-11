@@ -7,22 +7,74 @@ from .gui import Ui_MainWindow
 from .logger import ThreadLogHandler, setup_logger
 from .object import PartObject
 
+SETTINGS = {
+    "refdes": "",
+    "rotate": True,
+    "circles": False,
+    "labels": True,
+}
+
 
 class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
     """Main Part Map Window."""
 
-    def __init__(self, filename, kwargs):
+    def __init__(self, filename=None, settings=SETTINGS):
         QtWidgets.QMainWindow.__init__(self)
         self.log = setup_logger("partmap")
 
+        self.part = None
+        self.view = None
+
+        screen_resolution = QtWidgets.QApplication.desktop().screenGeometry()
+
+        settings.update(
+            {
+                "width": screen_resolution.width(),
+                "height": screen_resolution.height(),
+                "factor": 1.0,
+                "margin": 5,
+            }
+        )
+        self.settings = settings
+
         self.setupUi(self)
         self.menubar.setNativeMenuBar(False)
+        self.connect_actions()
 
         thread_log = ThreadLogHandler()
         self.log.addHandler(thread_log)
         thread_log.new_record.connect(self.log_message)
 
-        filename = Path(filename)
+        if filename:
+            self.load_file(Path(filename))
+
+    def connect_actions(self):
+        """Connect any actions to slots."""
+        # pylint: disable=W0201
+        self.actionOpen.triggered.connect(self.prompt_user_for_file)
+        self.actionSave_as_Image.triggered.connect(self.save_image)
+        self.actionSave_as_Json.triggered.connect(self.save_json)
+        self.actionRotate.triggered.connect(self.rotate)
+        self.actionToggle_Shape.triggered.connect(self.change_shape)
+
+    def log_message(self, level, msg) -> None:
+        """Log any logger messages via the slot/signal mechanism so that its thread safe."""
+        del level  # Unused
+        self.statusbar.showMessage(msg, timeout=5000)  # Miliseconds
+
+    def prompt_user_for_file(self):
+        """Load a file into the gui."""
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            self.tr("Load Project"),
+            "",
+            self.tr("Part Map File (*.json *.net *.txt *.xlsx *.xlsm *.xltm)"),
+        )
+        if filename:
+            self.load_file(Path(filename))
+
+    def load_file(self, filename: Path):
+        """Read in a file and create a part."""
         self.setWindowTitle(filename.stem)
         self.log.info(f"Filename: {filename}")
         if filename.suffix in [".xlsx", ".xlsm", ".xltm"]:
@@ -30,34 +82,34 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         elif filename.suffix in [".json"]:
             self.part = PartObject.from_json(filename)
         elif filename.suffix in [".net", ".txt"]:
-            self.part = PartObject.from_telesis(filename, kwargs["refdes"])
+            self.part = PartObject.from_telesis(filename, self.settings["refdes"])
 
-        screen_resolution = QtWidgets.QApplication.desktop().screenGeometry()
-        view_settings = {
-            "width": screen_resolution.width(),
-            "height": screen_resolution.height(),
-            "title": filename.stem,
-            "rotate": kwargs["rotate"],
-            "circles": kwargs["circles"],
-            "labels": kwargs["no_labels"],
-            "factor": 1.0,
-            "margin": 5,
-        }
-        self.log.debug(f"Settings: {view_settings}")
+        self.view.setup(self.part, self.settings)
 
-        self.view.setup(self.part, view_settings)
+    def save_image(self):
+        """Save the view as an image."""
+        if self.view:
+            self.view.save()
+        else:
+            self.log.error("View doesn't exist")
 
-        self.connect_actions()
+    def save_json(self):
+        """Save the part as json."""
+        if self.part:
+            self.part.dump_json()
+        else:
+            self.log.error("Part doesn't exist")
 
-    def connect_actions(self):
-        """Connect any actions to slots."""
-        # pylint: disable=W0201
-        self.actionSave_as_Image.triggered.connect(self.view.save)
-        self.actionSave_as_Json.triggered.connect(self.part.dump_json)
-        self.actionRotate.triggered.connect(self.view.rotate_drawing)
-        self.actionToggle_Shape.triggered.connect(self.view.toggle_style)
+    def rotate(self):
+        """Rotate the view."""
+        if self.view:
+            self.view.rotate_drawing()
+        else:
+            self.log.error("View doesn't exist")
 
-    def log_message(self, level, msg) -> None:
-        """Log any logger messages via the slot/signal mechanism so that its thread safe."""
-        del level  # Unused
-        self.statusbar.showMessage(msg, timeout=5000)  # Miliseconds
+    def change_shape(self):
+        """Change from square/circle to the other."""
+        if self.view:
+            self.view.toggle_style()
+        else:
+            self.log.error("View doesn't exist")

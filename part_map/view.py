@@ -88,7 +88,7 @@ class PartViewer(QtWidgets.QGraphicsView):
                             self.box_size,
                         )
                         paint.drawRect(rect)
-                    if not self.settings["labels"]:
+                    if self.settings["labels"]:
                         paint.drawText(rect, QtCore.Qt.AlignCenter, pin["name"][:6])
             paint.drawText(
                 QtCore.QRectF(

@@ -8,8 +8,7 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from part_map.view import PartViewer
-from PySide2.QtCore import QCoreApplication, QMetaObject, QObject, QPoint, QRect, QSize, Qt, QUrl
+from PySide2.QtCore import QCoreApplication, QMetaObject, QObject, QPoint, QRect, QSize, QUrl, Qt
 from PySide2.QtGui import (
     QBrush,
     QColor,
@@ -18,12 +17,14 @@ from PySide2.QtGui import (
     QFontDatabase,
     QIcon,
     QLinearGradient,
-    QPainter,
     QPalette,
+    QPainter,
     QPixmap,
     QRadialGradient,
 )
 from PySide2.QtWidgets import *
+
+from part_map.view import PartViewer
 
 
 class Ui_MainWindow(object):
@@ -43,6 +44,8 @@ class Ui_MainWindow(object):
         self.actionRotate.setCheckable(False)
         self.actionToggle_Shape = QAction(MainWindow)
         self.actionToggle_Shape.setObjectName("actionToggle_Shape")
+        self.actionOpen = QAction(MainWindow)
+        self.actionOpen.setObjectName("actionOpen")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
@@ -68,6 +71,8 @@ class Ui_MainWindow(object):
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuOptions.menuAction())
+        self.menuFile.addAction(self.actionOpen)
+        self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionSave_as_Image)
         self.menuFile.addAction(self.actionSave_as_Json)
         self.menuFile.addSeparator()
@@ -106,6 +111,8 @@ class Ui_MainWindow(object):
         self.actionToggle_Shape.setShortcut(
             QCoreApplication.translate("MainWindow", "Ctrl+T", None)
         )
+        self.actionOpen.setText(QCoreApplication.translate("MainWindow", "Open", None))
+        self.actionOpen.setShortcut(QCoreApplication.translate("MainWindow", "Ctrl+O", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", "&File", None))
         self.menuOptions.setTitle(QCoreApplication.translate("MainWindow", "&Options", None))
 
