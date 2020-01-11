@@ -13,7 +13,7 @@ def setup_logger(root_name: str) -> Logger:
     console_handler = logging.StreamHandler()
     ch_format = logging.Formatter("%(message)s")
     console_handler.setFormatter(ch_format)
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.DEBUG)
     log.addHandler(console_handler)
 
     log.setLevel(logging.DEBUG)
@@ -35,7 +35,7 @@ class ThreadLogHandler(logging.Handler):
         self.log = LogQObject()
         self.new_record = self.log.new_record
         self.setFormatter(logging.Formatter("%(message)s"))
-        self.setLevel(logging.DEBUG)
+        self.setLevel(logging.INFO)
 
     def emit(self, record: LogRecord) -> None:
         """Append the record to the Widget."""

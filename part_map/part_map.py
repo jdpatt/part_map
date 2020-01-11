@@ -15,7 +15,7 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.log = setup_logger("partmap")
         self.setupUi(self)
-        self.menubar.setNativeMenuBar(False)  # Until Qt fixes QMenu for Catalina
+        self.menubar.setNativeMenuBar(False)
 
         thread_log = ThreadLogHandler()
         self.log.addHandler(thread_log)
@@ -45,13 +45,9 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         self.log.debug(f"Settings: {view_settings}")
         self.setupUi(self)
 
-        self.view.part = self.part
-        self.view.settings = view_settings
+        self.view.setup(self.part, view_settings)
 
         self.connect_actions()
-
-        # Fill the graphic view
-        self.view.generate_render()
 
     def connect_actions(self):
         """Connect any actions to slots."""

@@ -13,39 +13,27 @@ class PartViewer(QtWidgets.QGraphicsView):
     def __init__(self, parent=None):
         super(PartViewer, self).__init__(parent)
         self.log = logging.getLogger("partmap.view")
-        self.parent = parent
-        self._settings = None
-        self._part = None
-        self.image = None
-        self.box_size = 50
-        self.total_steps = 0
 
-        self.setScene(QtWidgets.QGraphicsScene())
+        self.settings = None
+        self.part = None
+        self.image = None
+
+        self.box_size = 50
+        self.zoom_level = 0
+
+        self.scene = QtWidgets.QGraphicsScene()
+        self.setScene(self.scene)
         self.setTransformationAnchor(self.AnchorUnderMouse)
         self.setResizeAnchor(self.AnchorUnderMouse)
         self.setDragMode(self.ScrollHandDrag)
 
-    @property
-    def settings(self):
+    def setup(self, part, settings):
         """Return the settings dictionary."""
-        return self._settings
-
-    @settings.setter
-    def settings(self, settings):
-        """Set the settings dictionary and update the view."""
-        self._settings = settings
-        if self._settings["rotate"]:
+        self.part = part
+        self.settings = settings
+        if self.settings["rotate"]:
             self.rotate_drawing()
-
-    @property
-    def part(self):
-        """Return the part object."""
-        return self._part
-
-    @part.setter
-    def part(self, part):
-        """Set the part object."""
-        self._part = part
+        self.generate_render()
 
     def generate_render(self) -> None:
         """ Generate the part """
@@ -112,7 +100,6 @@ class PartViewer(QtWidgets.QGraphicsView):
                 row,
             )
         paint.end()
-        self.redraw()
 
     def save(self) -> None:
         """ Save the Pixmap as a .png """
@@ -134,10 +121,10 @@ class PartViewer(QtWidgets.QGraphicsView):
 
     def redraw(self):
         """Update the current pixmap."""
+        self.scene.clear()
         pixmap = QtGui.QPixmap.fromImage(self.image)
-        pixmap.scaled(self.settings["width"], self.settings["height"], QtCore.Qt.KeepAspectRatio)
-        pixmap_item = self.scene().addPixmap(pixmap)
-        self.centerOn(pixmap_item)
+        self.scene.addPixmap(pixmap)
+        self.scene.update()
 
     def toggle_style(self):
         """Change between circles or squares."""
@@ -146,6 +133,7 @@ class PartViewer(QtWidgets.QGraphicsView):
         else:
             self.settings["circles"] = True
         self.generate_render()
+        self.redraw()
 
     def rotate_drawing(self):
         """Rotate the diagram."""
@@ -155,13 +143,14 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.part.columns = part_rows
         self.part.rows = part_cols
         self.generate_render()
+        self.redraw()
 
     def wheelEvent(self, event) -> None:  # pylint: disable=C0103
         """ If the wheel is scrolled; figure out how much to zoom """
         steps = event.angleDelta().y() / 120
-        self.total_steps += steps
-        if (self.total_steps * steps) < 0:
-            self.total_steps = steps  # Zoom out by steps
+        self.zoom_level += steps
+        if (self.zoom_level * steps) < 0:
+            self.zoom_level = steps  # Zoom out by steps
         factor = 1.0 + (steps / 10.0)
         self.settings["factor"] *= factor
         if self.settings["factor"] < 0.3:
