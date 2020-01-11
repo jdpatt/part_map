@@ -1,7 +1,7 @@
 """Main Window of Part Map"""
 from pathlib import Path
 
-from PySide2 import QtWidgets
+from PySide2 import QtCore, QtWidgets
 
 from .gui import Ui_MainWindow
 from .logger import ThreadLogHandler, setup_logger
@@ -31,7 +31,6 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
             {
                 "width": screen_resolution.width(),
                 "height": screen_resolution.height(),
-                "factor": 1.0,
                 "margin": 5,
             }
         )
@@ -56,6 +55,9 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionSave_as_Json.triggered.connect(self.save_json)
         self.actionRotate.triggered.connect(self.rotate)
         self.actionToggle_Shape.triggered.connect(self.change_shape)
+        self.actionZoom_In.triggered.connect(self.zoom_in)
+        self.actionZoom_Out.triggered.connect(self.zoom_out)
+        self.actionReset_Zoom.triggered.connect(self.reset_zoom)
 
     def log_message(self, level, msg) -> None:
         """Log any logger messages via the slot/signal mechanism so that its thread safe."""
@@ -113,3 +115,25 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
             self.view.toggle_style()
         else:
             self.log.error("View doesn't exist")
+
+    def zoom_in(self):
+        """Zoom in the View."""
+        if self.view:
+            self.view.set_zoom(1)
+
+    def zoom_out(self):
+        """Zoom out the View."""
+        if self.view:
+            self.view.set_zoom(-1)
+
+    def reset_zoom(self):
+        """Zoom the View."""
+        if self.view:
+            self.view.reset_zoom()
+
+    @QtCore.Slot(object)
+    def set_properties_widget(self, widget=None) -> None:
+        """Set the property widget to a new widget."""
+        if self.properties.isHidden():
+            self.properties.setVisible(True)
+        self.properties.setWidget(widget)

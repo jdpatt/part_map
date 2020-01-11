@@ -4,7 +4,7 @@ import sys
 from part_map.part_map import PartMap
 from PySide2 import QtWidgets
 
-app = QtWidgets.QApplication([])
-gui = PartMap()
-gui.show()
-sys.exit(app.exec_())
+APP = QtWidgets.QApplication([])
+GUI = PartMap()
+GUI.show()
+sys.exit(APP.exec_())

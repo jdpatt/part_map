@@ -8,7 +8,8 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import QCoreApplication, QMetaObject, QObject, QPoint, QRect, QSize, QUrl, Qt
+from part_map.view import PartViewer
+from PySide2.QtCore import QCoreApplication, QMetaObject, QObject, QPoint, QRect, QSize, Qt, QUrl
 from PySide2.QtGui import (
     QBrush,
     QColor,
@@ -17,14 +18,12 @@ from PySide2.QtGui import (
     QFontDatabase,
     QIcon,
     QLinearGradient,
-    QPalette,
     QPainter,
+    QPalette,
     QPixmap,
     QRadialGradient,
 )
 from PySide2.QtWidgets import *
-
-from part_map.view import PartViewer
 
 
 class Ui_MainWindow(object):
@@ -46,6 +45,12 @@ class Ui_MainWindow(object):
         self.actionToggle_Shape.setObjectName("actionToggle_Shape")
         self.actionOpen = QAction(MainWindow)
         self.actionOpen.setObjectName("actionOpen")
+        self.actionZoom_In = QAction(MainWindow)
+        self.actionZoom_In.setObjectName("actionZoom_In")
+        self.actionZoom_Out = QAction(MainWindow)
+        self.actionZoom_Out.setObjectName("actionZoom_Out")
+        self.actionReset_Zoom = QAction(MainWindow)
+        self.actionReset_Zoom.setObjectName("actionReset_Zoom")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
@@ -64,13 +69,21 @@ class Ui_MainWindow(object):
         self.menuFile.setObjectName("menuFile")
         self.menuOptions = QMenu(self.menubar)
         self.menuOptions.setObjectName("menuOptions")
+        self.menuView = QMenu(self.menubar)
+        self.menuView.setObjectName("menuView")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+        self.properties = QDockWidget(MainWindow)
+        self.properties.setVisible(False)
+        self.properties.setObjectName("dockWidget")
+        self.properties.setFloating(True)
+        MainWindow.addDockWidget(Qt.RightDockWidgetArea, self.properties)
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuOptions.menuAction())
+        self.menubar.addAction(self.menuView.menuAction())
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionSave_as_Image)
@@ -79,6 +92,9 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionExit)
         self.menuOptions.addAction(self.actionRotate)
         self.menuOptions.addAction(self.actionToggle_Shape)
+        self.menuView.addAction(self.actionZoom_In)
+        self.menuView.addAction(self.actionZoom_Out)
+        self.menuView.addAction(self.actionReset_Zoom)
 
         self.retranslateUi(MainWindow)
         self.actionExit.triggered.connect(MainWindow.close)
@@ -113,7 +129,17 @@ class Ui_MainWindow(object):
         )
         self.actionOpen.setText(QCoreApplication.translate("MainWindow", "Open", None))
         self.actionOpen.setShortcut(QCoreApplication.translate("MainWindow", "Ctrl+O", None))
+        self.actionZoom_In.setText(QCoreApplication.translate("MainWindow", "Zoom In", None))
+        self.actionZoom_In.setShortcut(QCoreApplication.translate("MainWindow", "Ctrl+=", None))
+        self.actionZoom_Out.setText(QCoreApplication.translate("MainWindow", "Zoom Out", None))
+        self.actionZoom_Out.setShortcut(QCoreApplication.translate("MainWindow", "Ctrl+-", None))
+        self.actionReset_Zoom.setText(QCoreApplication.translate("MainWindow", "Reset Zoom", None))
+        self.actionReset_Zoom.setShortcut(QCoreApplication.translate("MainWindow", "Ctrl+0", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", "&File", None))
         self.menuOptions.setTitle(QCoreApplication.translate("MainWindow", "&Options", None))
+        self.menuView.setTitle(QCoreApplication.translate("MainWindow", "View", None))
+        self.properties.setWindowTitle(
+            QCoreApplication.translate("MainWindow", "Properties", None)
+        )
 
     # retranslateUi
