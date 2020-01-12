@@ -177,7 +177,7 @@ class PartViewer(QtWidgets.QGraphicsView):
             self.reset_zoom()
 
         new_zoom = value + self.zoom_level
-        if -5 <= new_zoom <= 10:
+        if -10 <= new_zoom <= 10:
             if value == 1:
                 self.zoom_level += 1
                 self.scale(1.1, 1.1)
