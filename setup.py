@@ -14,7 +14,7 @@ setup(
     url="https://github.com/jdpatt/part_map",
     author="David Patterson",
     license="MIT",
-    python_requires=">=3.7",
+    python_requires=">=3.6",
     packages=find_packages(include=["part_map", "part_map.*"]),
     include_package_data=True,
     install_requires=["openpyxl", "Click", "natsort", "PySide2"],
