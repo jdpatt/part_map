@@ -8,3 +8,4 @@ htmlcov/
 .vscode
 __pycache__
 *.log
+pip-wheel-metadata

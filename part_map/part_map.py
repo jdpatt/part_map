@@ -86,7 +86,7 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         elif filename.suffix in [".net", ".txt"]:
             self.part = PartObject.from_telesis(filename, self.settings["refdes"])
 
-        self.settings.update({"title": filename.stem})
+        self.settings.update({"filename": filename})
         self.view.setup(self.part, self.settings)
 
     def save_image(self):

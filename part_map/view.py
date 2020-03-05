@@ -103,7 +103,7 @@ class PartViewer(QtWidgets.QGraphicsView):
             )
             self.scene.render(painter)
             painter.end()
-            save_file = Path(f'{self.settings["title"]}.png')
+            save_file = self.settings["filename"].with_suffix('.png')
             self.log.info(f"Saved image to {save_file}")
             image.save(str(save_file))
         else:

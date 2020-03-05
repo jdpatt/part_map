@@ -17,7 +17,7 @@ class PartObject:
         self.log = logging.getLogger("partmap.object")
         self._pins = pins
         self._columns, self._rows = self.sort_and_split_pin_list()
-        self.filename = Path(filename).stem
+        self.filename = Path(filename)
 
     @classmethod
     def from_excel(cls, filename):
@@ -124,7 +124,7 @@ class PartObject:
 
     def dump_json(self):
         """ Dump the PartObject dictionary to a .json file """
-        save_file = f"{self.filename}.json"
+        save_file = self.filename.with_suffix(".json")
         self.log.info(f"Saved as json to {save_file}")
         with open(save_file, "w") as outfile:
             json.dump(self._pins, outfile, sort_keys=True, indent=4, separators=(",", ": "))
