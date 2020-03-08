@@ -1,6 +1,7 @@
 """View for the pin."""
-from part_map.pins.widget import PinWidget
 from PySide2 import QtCore, QtGui, QtWidgets
+
+from part_map.pins.widget import PinWidget
 
 
 class Pin(QtCore.QObject, QtWidgets.QGraphicsItem):
@@ -59,7 +60,7 @@ class Pin(QtCore.QObject, QtWidgets.QGraphicsItem):
         else:
             painter.drawRect(self.rect)
 
-        painter.setFont(QtGui.QFont("Times", 12))
+        painter.setFont(QtGui.QFont("Arial", self.view.font_size))
         if self.view.settings["labels"]:
             if len(self.pin["name"]) > 7:
                 name = self.pin["name"][:7]

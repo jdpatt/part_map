@@ -1,10 +1,10 @@
 """ Visual pin out of a BGA or connector """
 import logging
-from pathlib import Path
 from typing import List
 
-from part_map.pins import Pin
 from PySide2 import QtCore, QtGui, QtWidgets
+
+from part_map.pins import Pin
 
 
 class PartViewer(QtWidgets.QGraphicsView):
@@ -19,6 +19,7 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.part = None
 
         self.box_size = 50
+        self.font_size = 12
         self.zoom_level = 0
 
         self.scene = QtWidgets.QGraphicsScene()
@@ -26,8 +27,10 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.setScene(self.scene)
         self.scene.setFont(QtGui.QFont("Times", 12))
 
-        self.setTransformationAnchor(self.AnchorUnderMouse)
-        self.setResizeAnchor(self.AnchorUnderMouse)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.setTransformationAnchor(QtWidgets.QGraphicsView.NoAnchor)
+        self.setResizeAnchor(QtWidgets.QGraphicsView.NoAnchor)
         self.setDragMode(self.ScrollHandDrag)
         self.setRenderHint(QtGui.QPainter.Antialiasing, True)
         self.setViewportUpdateMode(QtWidgets.QGraphicsView.FullViewportUpdate)
@@ -40,6 +43,7 @@ class PartViewer(QtWidgets.QGraphicsView):
             self.rotate_drawing()
         self.scale_box_size(self.part.columns, self.part.rows)
         self.generate_render()
+        self.fit_view()
 
     def generate_render(self) -> None:
         """ Generate the part """
@@ -49,7 +53,7 @@ class PartViewer(QtWidgets.QGraphicsView):
 
         # Draw the Header Row
         for hdr_offset, column in enumerate(part_cols):
-            text = self.scene.addText(column)
+            text = self.scene.addText(column, QtGui.QFont("Arial", self.font_size))
             text.setDefaultTextColor(QtCore.Qt.black)
             text.setPos(hdr_offset * self.box_size + int(self.box_size), int(self.box_size / 2))
 
@@ -73,7 +77,7 @@ class PartViewer(QtWidgets.QGraphicsView):
                     pin_graphic.clicked.connect(
                         self.parentWidget().parentWidget().set_properties_widget
                     )
-                text = self.scene.addText(row)
+                text = self.scene.addText(row, QtGui.QFont("Arial", self.font_size))
                 text.setDefaultTextColor(QtCore.Qt.black)
                 text.setPos(
                     self.box_size * len(part_cols) + int(self.box_size),
@@ -103,7 +107,7 @@ class PartViewer(QtWidgets.QGraphicsView):
             )
             self.scene.render(painter)
             painter.end()
-            save_file = self.settings["filename"].with_suffix('.png')
+            save_file = self.settings["filename"].with_suffix(".png")
             self.log.info(f"Saved image to {save_file}")
             image.save(str(save_file))
         else:
@@ -120,7 +124,7 @@ class PartViewer(QtWidgets.QGraphicsView):
         self.settings["image_width"] = (len(columns) + 1) * self.box_size + self.box_size
         self.settings["image_height"] = (len(rows) + 1) * self.box_size + self.box_size
         self.setSceneRect(0, 0, self.settings["image_width"], self.settings["image_height"])
-        self.fitInView(self.scene.sceneRect())
+        self.fit_view()
 
     def toggle_style(self):
         """Change between circles or squares."""
@@ -169,7 +173,6 @@ class PartViewer(QtWidgets.QGraphicsView):
         """Reset the view to the original scale."""
         self.scale(1.0, 1.0)
         self.zoom_level = 0
-        self.resetTransform()
 
     def set_zoom(self, value=0.0):
         """Zoom the View."""
@@ -184,3 +187,20 @@ class PartViewer(QtWidgets.QGraphicsView):
             elif value == -1:
                 self.zoom_level += -1
                 self.scale(0.9, 0.9)
+
+    def increase_font(self):
+        """Change the font size."""
+        self.font_size += 2
+        self.generate_render()
+
+    def decrease_font(self):
+        """Change the font size."""
+        self.font_size -= 2
+        self.generate_render()
+
+    def fit_view(self):
+        """Update the view rect to cover anything in the scene."""
+        rect = QtCore.QRectF()
+        for item in self.scene.items():
+            rect = rect.united(item.boundingRect())
+        self.fitInView(rect, QtCore.Qt.KeepAspectRatio)

@@ -57,6 +57,8 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionToggle_Labels.triggered.connect(self.toggle_labels)
         self.actionZoom_In.triggered.connect(self.zoom_in)
         self.actionZoom_Out.triggered.connect(self.zoom_out)
+        self.actionDecrease_Font_Size.triggered.connect(self.decrease_font)
+        self.actionIncrease_Font_Size.triggered.connect(self.increase_font)
         self.actionReset_Zoom.triggered.connect(self.reset_zoom)
 
     def log_message(self, level, msg) -> None:
@@ -133,6 +135,16 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         """Zoom out the View."""
         if self.view:
             self.view.set_zoom(-1)
+
+    def decrease_font(self):
+        """Decrease the font size."""
+        if self.view:
+            self.view.decrease_font()
+
+    def increase_font(self):
+        """Increase the font size."""
+        if self.view:
+            self.view.increase_font()
 
     def reset_zoom(self):
         """Zoom the View."""

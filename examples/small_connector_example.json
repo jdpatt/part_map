@@ -1,0 +1,50 @@
+{
+    "A1": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "A2": {
+        "name": "DIFF_P",
+        "color": "#2DC3C4"
+    },
+    "A3": {
+        "name": "DIFF_N",
+        "color": "#2DC3C4"
+    },
+    "A4": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "A5": {
+        "name": "CLK_RESET_L",
+        "color": "#ffffff"
+    },
+    "A6": {
+        "name": "SIGNAL1",
+        "color": "#4CBB63"
+    },
+    "B1": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B2": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B3": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B4": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B5": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    },
+    "B6": {
+        "name": "GND",
+        "color": "#6F6F6F"
+    }
+}

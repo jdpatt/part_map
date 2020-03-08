@@ -8,7 +8,6 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from part_map.view import PartViewer
 from PySide2.QtCore import QCoreApplication, QMetaObject, QObject, QPoint, QRect, QSize, Qt, QUrl
 from PySide2.QtGui import (
     QBrush,
@@ -24,6 +23,8 @@ from PySide2.QtGui import (
     QRadialGradient,
 )
 from PySide2.QtWidgets import *
+
+from part_map.view import PartViewer
 
 
 class Ui_MainWindow(object):
@@ -42,6 +43,8 @@ class Ui_MainWindow(object):
         self.actionRotate.setObjectName("actionRotate")
         self.actionRotate.setCheckable(False)
         self.actionToggle_Shape = QAction(MainWindow)
+        self.actionDecrease_Font_Size = QAction(MainWindow)
+        self.actionIncrease_Font_Size = QAction(MainWindow)
         self.actionToggle_Shape.setObjectName("actionToggle_Shape")
         self.actionToggle_Labels = QAction(MainWindow)
         self.actionToggle_Labels.setObjectName("actionToggle_Labels")
@@ -95,6 +98,9 @@ class Ui_MainWindow(object):
         self.menuOptions.addAction(self.actionRotate)
         self.menuOptions.addAction(self.actionToggle_Shape)
         self.menuOptions.addAction(self.actionToggle_Labels)
+        self.menuView.addAction(self.actionDecrease_Font_Size)
+        self.menuView.addAction(self.actionIncrease_Font_Size)
+        self.menuView.addSeparator()
         self.menuView.addAction(self.actionZoom_In)
         self.menuView.addAction(self.actionZoom_Out)
         self.menuView.addAction(self.actionReset_Zoom)
@@ -129,6 +135,18 @@ class Ui_MainWindow(object):
         )
         self.actionToggle_Shape.setShortcut(
             QCoreApplication.translate("MainWindow", "Ctrl+T", None)
+        )
+        self.actionDecrease_Font_Size.setText(
+            QCoreApplication.translate("MainWindow", "Decrease Font", None)
+        )
+        self.actionDecrease_Font_Size.setShortcut(
+            QCoreApplication.translate("MainWindow", "Ctrl+N", None)
+        )
+        self.actionIncrease_Font_Size.setText(
+            QCoreApplication.translate("MainWindow", "Increase Font", None)
+        )
+        self.actionIncrease_Font_Size.setShortcut(
+            QCoreApplication.translate("MainWindow", "Ctrl+M", None)
         )
         self.actionToggle_Labels.setText(
             QCoreApplication.translate("MainWindow", "Toggle Labels", None)
