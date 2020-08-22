@@ -1,5 +1,5 @@
 """Widget to allow the user to edit the color and names of pins."""
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2 import QtGui, QtWidgets
 
 
 class PinWidget(QtWidgets.QWidget):
@@ -24,7 +24,6 @@ class PinWidget(QtWidgets.QWidget):
         self.color_button.clicked.connect(self.change_color)
         self.name_edit.editingFinished.connect(self.change_name)
 
-    @QtCore.Slot()
     def change_color(self):
         """Update the color."""
         color_picker = QtWidgets.QColorDialog(self.color)
@@ -33,7 +32,6 @@ class PinWidget(QtWidgets.QWidget):
         self.pin_item.pin["color"] = self.color.name()
         self.pin_item.update()
 
-    @QtCore.Slot()
     def change_name(self):
         """Update the Name"""
         self.pin_item.pin["name"] = self.name_edit.text()

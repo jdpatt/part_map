@@ -13,7 +13,7 @@ class PartObject:
     """ Load and create a part from a source """
 
     def __init__(self, pins, filename):
-        super(PartObject, self).__init__()
+        super().__init__()
         self.log = logging.getLogger("partmap.object")
         self._pins = pins
         self._columns, self._rows = self.sort_and_split_pin_list()

@@ -1,7 +1,7 @@
 """Main Window of Part Map"""
 from pathlib import Path
 
-from PySide2 import QtCore, QtWidgets
+from PySide2 import QtWidgets
 
 from .gui import Ui_MainWindow
 from .logger import ThreadLogHandler, setup_logger
@@ -151,7 +151,6 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.view:
             self.view.reset_zoom()
 
-    @QtCore.Slot(object)
     def set_properties_widget(self, widget=None) -> None:
         """Set the property widget to a new widget."""
         if self.properties.isHidden():

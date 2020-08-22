@@ -2,9 +2,8 @@
 import logging
 from typing import List
 
-from PySide2 import QtCore, QtGui, QtWidgets
-
 from part_map.pins import Pin
+from PySide2 import QtCore, QtGui, QtWidgets
 
 
 class PartViewer(QtWidgets.QGraphicsView):
@@ -12,7 +11,7 @@ class PartViewer(QtWidgets.QGraphicsView):
 
     # pylint: disable=R0902
     def __init__(self, parent=None):
-        super(PartViewer, self).__init__(parent)
+        super().__init__(parent)
         self.log = logging.getLogger("partmap.view")
 
         self.settings = None
