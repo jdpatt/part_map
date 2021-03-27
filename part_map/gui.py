@@ -8,21 +8,7 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from part_map.view import PartViewer
 from PySide2.QtCore import QCoreApplication, QMetaObject, QRect, Qt
-from PySide2.QtGui import (
-    QBrush,
-    QColor,
-    QConicalGradient,
-    QFont,
-    QFontDatabase,
-    QIcon,
-    QLinearGradient,
-    QPainter,
-    QPalette,
-    QPixmap,
-    QRadialGradient,
-)
 from PySide2.QtWidgets import (
     QAction,
     QDockWidget,
@@ -32,6 +18,8 @@ from PySide2.QtWidgets import (
     QStatusBar,
     QWidget,
 )
+
+from part_map.view import PartViewer
 
 
 class Ui_MainWindow(object):

@@ -2,8 +2,9 @@
 import sys
 
 import click
-from part_map.part_map import PartMap
 from PySide2 import QtWidgets
+
+from part_map.part_map import PartMap
 
 
 @click.group(

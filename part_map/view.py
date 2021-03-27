@@ -2,8 +2,9 @@
 import logging
 from typing import List
 
-from part_map.pins import Pin
 from PySide2 import QtCore, QtGui, QtWidgets
+
+from part_map.pins import Pin
 
 
 class PartViewer(QtWidgets.QGraphicsView):

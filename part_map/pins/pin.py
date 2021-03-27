@@ -1,6 +1,7 @@
 """View for the pin."""
-from part_map.pins.widget import PinWidget
 from PySide2 import QtCore, QtGui, QtWidgets
+
+from part_map.pins.widget import PinWidget
 
 
 class Pin(QtCore.QObject, QtWidgets.QGraphicsItem):

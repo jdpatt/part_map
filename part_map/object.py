@@ -71,7 +71,7 @@ class PartObject:
         return cls(json.load(open(filename)), filename)
 
     def add_pin(self, pin: str, net: str, color: str) -> None:
-        """ Add a new pin to the part.
+        """Add a new pin to the part.
 
         Args:
             pin: The Pin Number. (A12)

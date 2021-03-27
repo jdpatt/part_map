@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pytest
 from part_map.part_map import PartObject
 
 
