@@ -18,6 +18,6 @@ setup(
     packages=find_packages(include=["part_map", "part_map.*"]),
     include_package_data=True,
     install_requires=["openpyxl", "Click", "natsort", "PySide2"],
-    entry_points={"console_scripts": ["part-map = part_map.cli:cli"]},
+    entry_points={"console_scripts": ["part-map = part_map.cli:map"]},
     zip_safe=False,
 )

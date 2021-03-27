@@ -11,7 +11,7 @@ from PySide2 import QtWidgets
 )
 @click.pass_context
 @click.version_option()
-def cli(ctx):
+def map(ctx):
     """Part Map - A Graphical Interface to visual Pinouts."""
     if ctx.invoked_subcommand is None:
         app = QtWidgets.QApplication([])
@@ -20,7 +20,7 @@ def cli(ctx):
         sys.exit(app.exec_())
 
 
-@cli.command()
+@map.command()
 @click.argument("filename", type=click.Path(exists=True))
 @click.option("--refdes", help="The refdes to pull from the Telesis.")
 @click.option("--circles", "-c", is_flag=True, help="Draw using circles instead of rectangles.")
