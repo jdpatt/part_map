@@ -18,7 +18,7 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         self.part = None
         self.view = None
 
-        screen_resolution = QtWidgets.QApplication.desktop().screenGeometry()
+        screen_resolution = QtWidgets.QApplication.instance().screens()[0].size()
         if not settings:
             settings = {
                 "refdes": "",
@@ -36,13 +36,13 @@ class PartMap(QtWidgets.QMainWindow, Ui_MainWindow):
         self.settings = settings
 
         self.setupUi(self)
+        self.properties.setVisible(False)
         self.menubar.setNativeMenuBar(False)
         self.connect_actions()
 
         thread_log = ThreadLogHandler()
         self.log.addHandler(thread_log)
         thread_log.new_record.connect(self.log_message)
-
         if filename:
             self.load_file(Path(filename))
 
